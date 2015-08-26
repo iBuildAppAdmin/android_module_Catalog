@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_caption">Catalogue</string>
+    <string name="cannot_init_plugin">Can\'t initialize plugin </string>
+    <string name="search_hint">Search</string>
+    <string name="back">Back</string>
+    <string name="home">Home</string>
+    <string name="cancel">Cancel</string>
+    <string name="catalogue">Catalogue</string>
+    <string name="search_no_result">There is no result for your query</string>
+    <string name="alert_no_internet">Cellular Data is Turned off. Turn on cellular data or use Wi-Fi to access data</string>
+    <string name="search_result">Search result</string>
+    <string name="nothing_to_like">Nothing to like</string>
+    <string name="post">Post</string>
+    <string name="loading">Loading</string>
+
+    <string name="directoryplugin_email_found_this">I just found this in the</string>
+    <string name="directoryplugin_email_download_this">Download the</string>
+    <string name="directoryplugin_email_android_iphone_app">iPhone/Android app</string>
+    <string name="directoryplugin_email_posted_via">Posted via</string>
+    <string name="directoryplugin_twitter_posted_success">The picture has been posted to your Twitter wall</string>
+    <string name="directoryplugin_facebook_posted_success">The picture has been posted to your Facebook wall</string>
+    <string name="directoryplugin_twitter_posted_error">The picture hasn\'t been posted to your Twitter wall</string>
+    <string name="directoryplugin_facebook_posted_error">The picture hasn\'t been posted to your Facebook wall</string>
+
+    <string name="alert_twitter_auth_error">Twitter authorization failed</string>
+    <string name="alert_facebook_auth_error">Facebook authorization failed</string>
+    <string name="alert_email_auth_error">Email authorization failed</string>
+
+    <string name="like_success">The item has been successfully liked on Facebook</string>
+    <string name="like_error">Could not like this item</string>
+    <string name="already_liked">You have already liked this item</string>
+
+    <string name="buy_now">Buy Now</string>
+    <string name="thank_you">Thank you for your order!</string>
+
+    <string name="shopping_cart_first_name">First Name</string>
+    <string name="shopping_cart_last_name">Last Name</string>
+    <string name="shopping_cart_email_address">Email</string>
+    <string name="shopping_cart_phone">Phone</string>
+    <string name="shopping_cart_country">Country</string>
+    <string name="shopping_cart_street_address">Street Address</string>
+    <string name="shopping_cart_city">City</string>
+    <string name="shopping_cart_state">State</string>
+    <string name="shopping_cart_zip_code">Zip Code</string>
+    <string name="shopping_cart_note">Note</string>
+
+    <string name="shopping_cart_add_to_cart">Add to Cart</string>
+    <string name="shopping_cart_item_delete">Delete</string>
+    <string name="shopping_cart_footer_apply_submit_order">Submit Order</string>
+    <string name="shopping_cart_footer_apply_check_out">Check Out</string>
+    <string name="shopping_cart">Shopping cart</string>
+    <string name="shopping_cart_footer_total">Total:</string>
+    <string name="shopping_cart_footer_title">Please, enter your contact info:</string>
+    <string name="shopping_cart_fill_required_fields">Please fill out all required fields</string>
+    <string name="shopping_cart_invalid_email">Email address is incorrect</string>
+    <string name="shopping_cart_need_internet_connection">Please connect to the internet.</string>
+    <string name="shopping_cart_dialog_continue">Continue</string>
+    <string name="shopping_cart_dialog_view_cart">View cart</string>
+    <string name="shopping_cart_dialog_title">Item added to cart</string>
+    <string name="shopping_cart_loading">Loading...</string>
+    <string name="shopping_cart_send_error">Oops! Something goes wrong!</string>
+    <string name="shopping_cart_is_empty">You shopping cart is empty</string>
+    <string name="shopping_cart_your_order_number">Your Order Number</string>
+    <string name="shopping_cart_your_order_number_comment">Thank your for you order! Im really appreciate this!</string>
+
+    <plurals name="items_to_cart">
+        <item quantity="zero">There are %d items in your cart</item>
+        <item quantity="one">There is %d item in your cart</item>
+        <item quantity="many">There are %d items in your cart</item>
+        <item quantity="other">There are %d items in your cart</item>
+        <item quantity="few">There are %d items in your cart</item>
+    </plurals>
+
+    <plurals name="added_items">
+        <item quantity="zero">Items added to cart</item>
+        <item quantity="one">Item added to cart</item>
+        <item quantity="many">Items added to cart</item>
+        <item quantity="other">Items added to cart</item>
+        <item quantity="few">Items added to cart</item>
+    </plurals>
+
+    <plurals name="items_count">
+        <item quantity="zero">items</item>
+        <item quantity="one">item</item>
+        <item quantity="many">items</item>
+        <item quantity="other">items</item>
+        <item quantity="few">items</item>
+    </plurals>
+</resources>

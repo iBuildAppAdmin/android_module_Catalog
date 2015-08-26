@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/frame_root"
+        android:layout_width="match_parent"
+        android:layout_height="125dp"
+        android:layout_marginBottom="3dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/rounded_corners_black">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_corners_bottom_black"
+            android:orientation="vertical"
+            android:padding="1px">
+
+            <com.ibuildapp.romanblack.CataloguePlugin.view.RoundedListView
+                android:id="@+id/product_gridadapter_image"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder_black" />
+
+            <View
+                android:id="@+id/product_separator"
+                android:layout_width="1px"
+                android:layout_height="fill_parent"
+                android:layout_marginRight="7dp"
+                android:layout_toRightOf="@+id/product_gridadapter_image"
+                android:background="@color/black_trans_10" />
+
+            <TextView
+                android:id="@+id/product_gridadapter_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="4dp"
+                android:layout_toRightOf="@+id/product_separator"
+                android:ellipsize="end"
+                android:paddingTop="4dp"
+                android:singleLine="true"
+                android:text="Since the beginning of the mobile revolution, over 170,000 developers have trusted Flurry to track over 540,000 apps. Integrate Flurry Analytics in five minutes to get basic insights into your users and app performance, or set up advanced analysis of complex events to get a deep understanding of everything your users are do"
+                android:textColor="@color/black_trans_90"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/product_gridadapter_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/product_gridadapter_name"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_toRightOf="@+id/product_separator"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="Flurry Analytics in five minutes to get basic insights into your users and app performance, or set up advanced analysis of complex events to get a deep understanding of everything your users are doing. From initial launch to the top of the charts, Flurry Analytics is free at any scale and available for iOS, Android, Blackberry, Windows Phone, and mobile web. "
+                android:textColor="@color/black_trans_60"
+                android:textSize="13dp" />
+
+            <TextView
+                android:id="@+id/product_gridadapter_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/product_gridadapter_description"
+                android:layout_marginTop="4dp"
+                android:layout_toRightOf="@+id/product_separator"
+                android:text="New Text"
+                android:textColor="@color/black"
+                android:textSize="15dp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/basket_view_btn"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/product_gridadapter_description"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="5dp"
+                android:src="@drawable/basket_image" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_corners_black"
+            android:orientation="vertical"></LinearLayout>
+    </FrameLayout>
+</LinearLayout>

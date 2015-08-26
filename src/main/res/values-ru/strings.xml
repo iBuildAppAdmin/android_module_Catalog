@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_caption">Каталог</string>
+    <string name="cannot_init_plugin">Невозможно инициализировать плагин</string>
+    <string name="search_hint">Поиск</string>
+    <string name="back">Назад</string>
+    <string name="home">Домой</string>
+    <string name="cancel">Отмена</string>
+    <string name="catalogue">Каталог</string>
+    <string name="search_no_result">По вашему запросу результатов не найдено</string>
+    <string name="alert_no_internet">Нет подключения к интернету.</string>
+    <string name="search_result">Результаты поиска</string>
+    <string name="nothing_to_like">Нет объекта для лайка</string>
+    <string name="post">Отправить</string>
+    <string name="loading">Загрузка</string>
+
+    <string name="directoryplugin_email_found_this">Я нашел это, используя приложение</string>
+    <string name="directoryplugin_email_download_this">Загрузите приложение</string>
+    <string name="directoryplugin_email_android_iphone_app">для iPhone/Android</string>
+    <string name="directoryplugin_email_posted_via">Отправлено через</string>
+    <string name="directoryplugin_twitter_posted_success">Изображение было опубликовано под Вашей учетной запиcью Twitter</string>
+    <string name="directoryplugin_twitter_posted_error">Изображение не было опубликовано под Вашей учетной запиcью Twitter</string>
+    <string name="directoryplugin_facebook_posted_success">Изображение было опубликовано на Вашей стене Facebook</string>
+    <string name="directoryplugin_facebook_posted_error">Изображение не было опубликовано на Вашей стене Facebook</string>
+
+    <string name="alert_twitter_auth_error">Не удалось войти в Twitter</string>
+    <string name="alert_facebook_auth_error">Не удалось войти в Facebook</string>
+    <string name="alert_email_auth_error">Не удалось войти с помощью Email</string>
+
+    <string name="like_success">Добавлено на Facebook</string>
+    <string name="like_error">Невозможно добавить на Facebook</string>
+    <string name="already_liked">Уже добавлено на Facebook</string>
+
+    <string name="buy_now">Купить</string>
+    <string name="thank_you">Спасибо за Ваш заказ!</string>
+
+    <string name="shopping_cart_first_name">Имя</string>
+    <string name="shopping_cart_last_name">Фамилие</string>
+    <string name="shopping_cart_email_address">Email</string>
+    <string name="shopping_cart_phone">Телефон</string>
+    <string name="shopping_cart_country">Страна</string>
+    <string name="shopping_cart_street_address">Адрес</string>
+    <string name="shopping_cart_city">Город</string>
+    <string name="shopping_cart_state">Область</string>
+    <string name="shopping_cart_zip_code">Почтовый индекс</string>
+    <string name="shopping_cart_note">Примечание</string>
+
+    <string name="shopping_cart_add_to_cart">В корзину</string>
+    <string name="shopping_cart_item_delete">Удалить</string>
+    <string name="shopping_cart_footer_apply_submit_order">Подтвердить заказ</string>
+    <string name="shopping_cart_footer_apply_check_out">Оплатить</string>
+    <string name="shopping_cart">Корзина</string>
+    <string name="shopping_cart_footer_total">Итого:</string>
+    <string name="shopping_cart_footer_title">Введите ваши контактные данные:</string>
+    <string name="shopping_cart_fill_required_fields">Пожалуйста, введите все обязательные поля</string>
+    <string name="shopping_cart_invalid_email">Неверно заполнен адрес Email</string>
+    <string name="shopping_cart_need_internet_connection">Пожалуйста, проверьте соединение с интернет.</string>
+    <string name="shopping_cart_dialog_continue">Продолжить</string>
+    <string name="shopping_cart_dialog_view_cart">Корзина</string>
+    <string name="shopping_cart_dialog_title">Товар добавлен в корзину</string>
+    <string name="shopping_cart_loading">Загрузка...</string>
+    <string name="shopping_cart_send_error">Ошибка отправки заказа</string>
+    <string name="shopping_cart_is_empty">Ваша корзина пуста</string>
+    <string name="shopping_cart_your_order_number">Номер Вашего заказа</string>
+    <string name="shopping_cart_your_order_number_comment">Спасибо за Ваш заказ! Мы ценим ваше внимание!</string>
+
+    <plurals name="items_to_cart">
+        <item quantity="zero">В вашей корзине %d товаров</item>
+        <item quantity="one">В вашей корзине %d товар</item>
+        <item quantity="many">В вашей корзине %d товаров</item>
+        <item quantity="other">В вашей корзине %d товаров</item>
+        <item quantity="few">В вашей корзине %d товара</item>
+    </plurals>
+
+    <plurals name="added_items">
+        <item quantity="zero">Товар добавлен в корзину</item>
+        <item quantity="one">Товар добавлен в корзину</item>
+        <item quantity="many">Товары добавлены в корзину</item>
+        <item quantity="other">Товары добавлены в корзину</item>
+        <item quantity="few">Товары добавлены в корзину</item>
+    </plurals>
+
+    <plurals name="items_count">
+        <item quantity="zero">товаров</item>
+        <item quantity="one">товар</item>
+        <item quantity="many">товаров</item>
+        <item quantity="other">товаров</item>
+        <item quantity="few">товара</item>
+    </plurals>
+</resources>
