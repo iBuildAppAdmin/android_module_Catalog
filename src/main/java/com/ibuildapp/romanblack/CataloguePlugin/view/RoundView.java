@@ -15,7 +15,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.os.Build;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ImageView;
@@ -31,10 +33,14 @@ public class RoundView extends ImageView {
 
     public RoundView(Context context) {
         super(context);
+        if (Build.VERSION.SDK_INT >= 11 && Build.VERSION.SDK_INT <=17)
+            this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     public RoundView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        if (Build.VERSION.SDK_INT >= 11 && Build.VERSION.SDK_INT <=17)
+            this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     /**
