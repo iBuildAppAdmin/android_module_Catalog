@@ -295,6 +295,13 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith("tel:")) {
+                    Intent intent = new Intent(Intent.ACTION_DIAL,
+                            Uri.parse(url));
+                    startActivity(intent);
+                    return true;
+                }
+                else
                 if (url.contains("youtube.com")) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW,
