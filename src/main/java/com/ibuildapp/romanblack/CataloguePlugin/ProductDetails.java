@@ -683,6 +683,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                     List<String> userLikes = null;
                     try {
                         userLikes = FacebookAuthorizationActivity.getUserOgLikes();
+                        if (userLikes != null)
                         for (String likeUrl : userLikes) {
                             if (likeUrl.compareToIgnoreCase(product.imageURL) == 0) {
                                 likedbyMe = true;
@@ -691,27 +692,38 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                         }
 
                         if (!likedbyMe) {
-                            if (FacebookAuthorizationActivity.like(product.imageURL)) {
-                                String likeCountStr = likeCount.getText().toString();
-                                try {
-                                    final int res = Integer.parseInt(likeCountStr);
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            likeCount.setText(Integer.toString(res + 1));
-                                            Toast.makeText(ProductDetails.this, getString(R.string.like_success), Toast.LENGTH_SHORT).show();
-                                            enableLikeButton(false);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        if (FacebookAuthorizationActivity.like(product.imageURL)) {
+                                            String likeCountStr = likeCount.getText().toString();
+                                            try {
+                                                final int res = Integer.parseInt(likeCountStr);
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        likeCount.setText(Integer.toString(res + 1));
+                                                        Toast.makeText(ProductDetails.this, getString(R.string.like_success), Toast.LENGTH_SHORT).show();
+                                                        enableLikeButton(false);
+                                                    }
+                                                });
+                                            } catch (NumberFormatException e) {
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Toast.makeText(ProductDetails.this, getString(R.string.like_error), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                            }
                                         }
-                                    });
-                                } catch (NumberFormatException e) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(ProductDetails.this, getString(R.string.like_error), Toast.LENGTH_SHORT).show();
+                                    }catch (FacebookAuthorizationActivity.FacebookNotAuthorizedException e) {
+
+                                    }catch (FacebookAuthorizationActivity.FacebookAlreadyLiked facebookAlreadyLiked) {
+                                            facebookAlreadyLiked.printStackTrace();
                                         }
-                                    });
                                 }
-                            }
+                            }).start();
                         } else {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -723,8 +735,6 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                         }
                     } catch (FacebookAuthorizationActivity.FacebookNotAuthorizedException e) {
 
-                    } catch (FacebookAuthorizationActivity.FacebookAlreadyLiked facebookAlreadyLiked) {
-                        facebookAlreadyLiked.printStackTrace();
                     }
                 }
             }
