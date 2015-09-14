@@ -41,7 +41,7 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
     protected ConcurrentHashMap<Integer, Bitmap> imageMap;
     protected ConcurrentHashMap<Integer, ImageView> imageViewMap;
     protected ViewGroup uiView;
-    private ConcurrentLinkedQueue taskQueue;
+    private ConcurrentLinkedQueue<TaskItem> taskQueue;
     private QueueManager queueTask;
     private onLoadedListener onLoadedListener;
     private Handler handler = new Handler() {
@@ -53,7 +53,7 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
                     if (uiView != null) {
                         try {
                             View v = uiView.findViewWithTag(msg.arg1);
-                            if (v != null) {
+                            if (v != null && imageMap.get(msg.arg1) != null) {
                                 //Log.e(TAG, "v != null");
 
                                 if (v instanceof AlphaImageView)
@@ -144,7 +144,10 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
         for (Integer key : imageMap.keySet()) {
             imageMap.get(key).recycle();
         }
+        imageMap.clear();
         System.gc();
+        queueTask.interrupt();
+        queueTask.isInterrupted = true;
     }
 
     public interface onLoadedListener {
@@ -192,6 +195,7 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
      */
     private class QueueManager extends Thread implements OnImageDoneListener {
 
+        private boolean isInterrupted;
         private ConcurrentHashMap<Integer, Thread> threadList;
 
         private QueueManager() {
@@ -202,7 +206,7 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
         public void run() {
             super.run();
 
-            while (true) {
+            while (!isInterrupted() && !isInterrupted) {
                 if (threadList.size() < THREAD_POOL_SIZE) {
                     TaskItem taskItem = (TaskItem) taskQueue.poll();
                     if (taskItem != null) {
@@ -222,10 +226,23 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
                     e.printStackTrace();
                 }
             }
+
+            taskQueue.clear();
+            taskQueue = null;
+
+            for(Thread thread : threadList.values())
+                thread.interrupt();
+
+            threadList.clear();
+            threadList = null;
+            context = null;
         }
 
         @Override
         public void onImageLoaded(int uid, ImageView imageHolder, String name, Bitmap image, String downloadedImagePath, int reactionType) {
+            if(threadList == null || imageMap == null || handler == null)
+                return;
+
             threadList.remove(uid);
 
             // put image to storage and refresh adapter

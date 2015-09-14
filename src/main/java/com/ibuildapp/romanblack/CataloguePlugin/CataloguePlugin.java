@@ -41,6 +41,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.view.SearchView;
 import com.ibuildapp.romanblack.CataloguePlugin.xml.XmlParser;
+import com.jess.ui.TwoWayAbsListView;
 import com.jess.ui.TwoWayGridView;
 
 import java.io.File;
@@ -58,7 +59,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     private TwoWayGridView grid;
     private LinearLayout root;
     private List<CategoryProduct> categoryProductList = new ArrayList<CategoryProduct>();
-    private BaseAdapter adapter;
+    private BaseImageAdapter adapter;
     private TextView title;
     private ImageView searchViewBtn;
     private LinearLayout backBtn;
@@ -68,6 +69,8 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     private RelativeLayout titleHolder;
     private float density;
     private String pageTitle;
+    private Thread loader;
+    private boolean destroyed;
 
     /**
      * The same as onCreate()
@@ -83,7 +86,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
      * Loading content
      */
     private void loadContent() {
-        new Thread(new Runnable() {
+        loader = new Thread(new Runnable() {
             @Override
             public void run() {
                 XmlParser parser = new XmlParser(widgetXml);
@@ -222,50 +225,52 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
                 Log.e(TAG, "");
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        FrameLayout navbarHolder = (FrameLayout) findViewById(R.id.navbar_holder);
-                        if (Statics.uiConfig.colorSkin.color1 == Color.WHITE)
-                            navbarHolder.setBackgroundColor(getResources().getColor(R.color.black_trans_20));
-                        else
-                            navbarHolder.setBackgroundColor(getResources().getColor(R.color.white_trans_50));
+                if(!destroyed)
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            FrameLayout navbarHolder = (FrameLayout) findViewById(R.id.navbar_holder);
+                            if (Statics.uiConfig.colorSkin.color1 == Color.WHITE)
+                                navbarHolder.setBackgroundColor(getResources().getColor(R.color.black_trans_20));
+                            else
+                                navbarHolder.setBackgroundColor(getResources().getColor(R.color.white_trans_50));
 
-                        if (Statics.uiConfig.mainpagestyle.compareToIgnoreCase(Statics.GRID_STYLE) == 0) {
-                            grid = new TwoWayGridView(CataloguePlugin.this);
-                            grid.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                            grid.setNumColumns(Statics.GRID_NUM_COLUMNS);
-                            grid.setVerticalSpacing((int) (density * Statics.GRID_SPASING));
-                            grid.setHorizontalSpacing((int) (density * Statics.GRID_SPASING));
-                            grid.setVerticalScrollBarEnabled(false);
-                            grid.setScrollDirectionPortrait(0);
-                            grid.setScrollDirectionLandscape(0);
-                            grid.setCacheColorHint(Color.TRANSPARENT);
-                            grid.setSelector(R.drawable.adapter_selector);
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                            params.setMargins(
-                                    (int) (density * Statics.GRID_MARGINS),
-                                    (int) (density * Statics.GRID_SPASING),
-                                    (int) (density * Statics.GRID_MARGINS),
-                                    (int) (density * Statics.GRID_SPASING));
-                            root.addView(grid, params);
-                            adapter = new CategoryProductGridAdapter(CataloguePlugin.this, categoryProductList, grid);
-                            grid.setAdapter(adapter);
-                        } else {
-                            list = new ListView(CataloguePlugin.this);
-                            list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                            list.setDivider(null);
-                            list.setCacheColorHint(Color.TRANSPARENT);
-                            list.setSelector(R.drawable.adapter_selector);
-                            root.addView(list);
-                            adapter = new CategoryProductListAdapter(CataloguePlugin.this, categoryProductList, list);
-                            list.setAdapter(adapter);
+                            if (Statics.uiConfig.mainpagestyle.compareToIgnoreCase(Statics.GRID_STYLE) == 0) {
+                                grid = new TwoWayGridView(CataloguePlugin.this);
+                                grid.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                                grid.setNumColumns(Statics.GRID_NUM_COLUMNS);
+                                grid.setVerticalSpacing((int) (density * Statics.GRID_SPASING));
+                                grid.setHorizontalSpacing((int) (density * Statics.GRID_SPASING));
+                                grid.setVerticalScrollBarEnabled(false);
+                                grid.setScrollDirectionPortrait(0);
+                                grid.setScrollDirectionLandscape(0);
+                                grid.setCacheColorHint(Color.TRANSPARENT);
+                                grid.setSelector(R.drawable.adapter_selector);
+                                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                                params.setMargins(
+                                        (int) (density * Statics.GRID_MARGINS),
+                                        (int) (density * Statics.GRID_SPASING),
+                                        (int) (density * Statics.GRID_MARGINS),
+                                        (int) (density * Statics.GRID_SPASING));
+                                root.addView(grid, params);
+                                adapter = new CategoryProductGridAdapter(CataloguePlugin.this, categoryProductList, grid);
+                                grid.setAdapter(adapter);
+                            } else {
+                                list = new ListView(CataloguePlugin.this);
+                                list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                                list.setDivider(null);
+                                list.setCacheColorHint(Color.TRANSPARENT);
+                                list.setSelector(R.drawable.adapter_selector);
+                                root.addView(list);
+                                adapter = new CategoryProductListAdapter(CataloguePlugin.this, categoryProductList, list);
+                                list.setAdapter(adapter);
+                            }
                         }
-                    }
-                });
+                    });
 
             }
-        }).start();
+        });
+        loader.start();
     }
 
     /**
@@ -460,5 +465,8 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     public void destroy() {
         if (adapter != null)
             ((BaseImageAdapter) adapter).clearBitmaps();
+
+        destroyed = true;
+        loader.interrupt();
     }
 }
