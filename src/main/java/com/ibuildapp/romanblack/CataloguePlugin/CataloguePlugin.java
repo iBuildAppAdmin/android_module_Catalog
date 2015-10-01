@@ -470,3 +470,4 @@ public class CataloguePlugin extends AppBuilderModuleMain {
         loader.interrupt();
     }
 }
+ 
