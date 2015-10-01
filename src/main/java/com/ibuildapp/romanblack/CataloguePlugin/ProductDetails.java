@@ -1005,3 +1005,4 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
         cart_items.setVisibility(count > 0 && Statics.isBasket ? View.VISIBLE : View.GONE);
     }
 }
+ 
