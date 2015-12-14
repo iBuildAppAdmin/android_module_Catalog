@@ -1,3 +1,4 @@
+Use our code to save yourself time on cross-platform, cross-device and cross OS version development and testing
 # android module Catalog
 Catalog module is intended for displaying of n-level catalog. All elements can be separated using categories. Categories can be displayed in list view or grid view.
 
