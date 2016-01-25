@@ -20,7 +20,7 @@ import com.appbuilder.sdk.android.AppBuilderModuleMain;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 
 public class ThankYouPage extends AppBuilderModuleMain {
-
+    private static final String PLACEHOLDER = "{order}";
     private int orderNumber;
 
     /**
@@ -61,6 +61,20 @@ public class ThankYouPage extends AppBuilderModuleMain {
 
         setContentView(R.layout.shopping_cart_thank_you_page);
 
+        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+        hamburgerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animateRootContainer();
+            }
+        });
+        if (!showSideBar) {
+            hamburgerView.setVisibility(View.GONE);
+        }
+        else {
+            hamburgerView.setVisibility(View.VISIBLE);
+        }
+
         findViewById(R.id.navbar_holder).setBackgroundColor(getResources().getColor(Statics.uiConfig.colorSkin.color1 == Color.WHITE ? R.color.black_trans_20 : R.color.white_trans_50));
         findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,7 +86,14 @@ public class ThankYouPage extends AppBuilderModuleMain {
         findViewById(R.id.orderconfirmation_scroll_root).setBackgroundColor(Statics.uiConfig.colorSkin.color1);
 
         TextView order_number = (TextView) findViewById(R.id.order_number);
-        order_number.setText(Statics.shoppingCartFields.orderTitle + " " + orderNumber);
+
+        String orderString;
+        if (Statics.shoppingCartFields.orderTitle.contains(PLACEHOLDER))
+            orderString = Statics.shoppingCartFields.orderTitle.replace(PLACEHOLDER, String.valueOf(orderNumber));
+        else orderString = Statics.shoppingCartFields.orderTitle + " " + orderNumber;
+
+        order_number.setText(orderString);
+
         order_number.setTextColor(Statics.uiConfig.colorSkin.color4);
 
         TextView text = (TextView) findViewById(R.id.text);

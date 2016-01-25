@@ -280,4 +280,3 @@ public class BaseImageAdapter extends BaseAdapter implements BaseImageAdapterInt
         }
     }
 }
- 

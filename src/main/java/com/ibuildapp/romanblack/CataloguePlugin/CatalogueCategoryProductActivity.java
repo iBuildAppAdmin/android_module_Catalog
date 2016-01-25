@@ -64,7 +64,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
     private int screenWidth;
     private LinearLayout content;
     private LinearLayout noResultHolder;
-
+    private int shopingCartIndex;
     /**
      * The same as onCreate()
      */
@@ -82,7 +82,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
         categoryProductList = (List<CategoryProduct>) getIntent().getSerializableExtra("products");
 
         if (categoryProductList == null) {
-            categoryProductList = new ArrayList<CategoryProduct>();
+            categoryProductList = new ArrayList<>();
 
             // select categories for rendering
             int parentCategory = getIntent().getIntExtra("categoryId", -1);
@@ -134,7 +134,14 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
             list.setAdapter(adapter);
         }
     }
-
+    public void updateIndexSideBar(int count){
+        if (showSideBar && Statics.isBasket) {
+            StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
+            if (count > 0)
+                resString.append(" (" + String.valueOf(count) + ")");
+            updateWidgetInActualList(shopingCartIndex, resString.toString());
+        }
+    }
     /**
      * Initializing user interface
      */
@@ -175,12 +182,6 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
             }
         });
 
-        if (!Statics.isBasket) {
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchViewBtn.getLayoutParams();
-            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-            findViewById(R.id.cart_items).setVisibility(View.GONE);
-        }
-
         backBtn = (LinearLayout) findViewById(R.id.back_btn);
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -191,13 +192,41 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
 
         View basketBtn = findViewById(R.id.basket_view_btn);
         basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
-        basketBtn.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(CatalogueCategoryProductActivity.this, ShoppingCartPage.class);
                 startActivity(intent);
             }
+        };
+        basketBtn.setOnClickListener(listener);
+
+        // final boolean showSideBar = ((Boolean) getIntent().getExtras().getSerializable("showSideBar")).booleanValue();
+        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+        hamburgerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animateRootContainer();
+            }
         });
+        if (!showSideBar) {
+            hamburgerView.setVisibility(View.GONE);
+            basketBtn.setVisibility(View.VISIBLE);
+            basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
+        }
+        else {
+            hamburgerView.setVisibility(View.VISIBLE);
+            basketBtn.setVisibility(View.GONE);
+            if(Statics.isBasket)
+                shopingCartIndex = setTopBarRightButton(basketBtn, getResources().getString(R.string.shopping_cart), listener);
+        }
+
+        if (!Statics.isBasket) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchViewBtn.getLayoutParams();
+            if (!showSideBar)
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            findViewById(R.id.cart_items).setVisibility(View.GONE);
+        }
         onShoppingCartItemAdded();
 
         cancel = (TextView) findViewById(R.id.cancel_btn);
@@ -355,6 +384,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
 
         TextView cart_items = (TextView) findViewById(R.id.cart_items);
         cart_items.setText(String.valueOf(count));
-        cart_items.setVisibility(count > 0 && Statics.isBasket ? View.VISIBLE : View.GONE);
+        cart_items.setVisibility(count > 0 && Statics.isBasket && !showSideBar ? View.VISIBLE : View.GONE);
+        updateIndexSideBar(count);
     }
 }

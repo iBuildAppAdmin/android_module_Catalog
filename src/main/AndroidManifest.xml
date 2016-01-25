@@ -9,6 +9,9 @@
             android:name="com.ibuildapp.romanblack.CataloguePlugin.CataloguePlugin"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.ibuildapp.romanblack.CataloguePlugin.ExternalProductDetailsActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.ibuildapp.romanblack.CataloguePlugin.CatalogueCategoryProductActivity"
             android:screenOrientation="portrait" />
         <activity

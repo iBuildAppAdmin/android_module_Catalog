@@ -47,7 +47,15 @@
             android:singleLine="true"
             android:textColor="@color/black_trans_90"
             android:textSize="17sp" />
-
+        <ImageView
+            android:id="@+id/hamburger_view_btn"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:visibility="invisible"
+            android:layout_marginRight="9dp"
+            android:src="@drawable/hamburger_black" />
     </RelativeLayout>
 
     <ScrollView

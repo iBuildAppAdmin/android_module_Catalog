@@ -26,13 +26,6 @@ import android.widget.TextView;
 import com.ibuildapp.romanblack.CataloguePlugin.R;
 
 
-/**
- * Created with IntelliJ IDEA.
- * User: SimpleIce
- * Date: 17.07.14
- * Time: 11:07
- * To change this template use File | Settings | File Templates.
- */
 public class SearchView extends LinearLayout implements TextWatcher {
 
     private EditText edit;

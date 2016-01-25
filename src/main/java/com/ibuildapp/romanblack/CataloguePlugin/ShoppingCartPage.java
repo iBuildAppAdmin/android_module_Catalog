@@ -16,9 +16,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.AsyncTask;
+import android.text.Html;
 import android.text.InputFilter;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -40,9 +45,11 @@ import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ShoppingCartPage extends AppBuilderModuleMain {
-
+    private static final String pattern = "widget *= *\\d*";
     public static final int REQUEST_EXIT = 103012;
     private final boolean isLight = Statics.uiConfig.colorSkin.isLight;
     private final boolean isPayPalBased = Statics.isShoppingCartPayPalBased;
@@ -58,6 +65,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
     private Bitmap placeHolder;
     private SparseArray<Bitmap> images;
     private SparseBooleanArray deleted;
+    private LinearLayout priceLayout;
 
     /**
      * The same as onCreate()
@@ -157,6 +165,19 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
             return;
 
         setContentView(R.layout.shopping_cart_page);
+        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+        hamburgerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animateRootContainer();
+            }
+        });
+        if (!showSideBar) {
+            hamburgerView.setVisibility(View.GONE);
+        }
+        else {
+            hamburgerView.setVisibility(View.VISIBLE);
+        }
 
         findViewById(R.id.layout).setBackgroundColor(Statics.uiConfig.colorSkin.color1);
 
@@ -166,6 +187,23 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
 
         footer = inflater.inflate(R.layout.shopping_cart_page_footer, shopping_cart_content, false);
         footer.findViewById(R.id.footer_layout).setBackgroundColor(Statics.uiConfig.colorSkin.color1);
+
+        if (Statics.shoppingCartFields.description == null || "".equals(Statics.shoppingCartFields.description))
+            footer.findViewById(R.id.shopping_cart_page_desc_layout).setVisibility(View.GONE);
+        else {
+            footer.findViewById(R.id.shopping_cart_page_desc_layout).setVisibility(View.VISIBLE);
+            TextView view = (TextView) footer.findViewById(R.id.description_text);
+            footer.findViewById(R.id.separator2).setBackgroundColor(getResources().getColor(isLight ? R.color.black_trans_20 : R.color.white_trans_20));
+            setTextViewHTML(view, Statics.shoppingCartFields.description);
+            view.setClickable(true);
+            view.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+
+        //webView.loadData(Statics.shoppingCartFields.description,"text/html; charset=UTF-8", null);
+        priceLayout = (LinearLayout) footer.findViewById(R.id.shopping_cart_price_layout);
+        if (totalPrice == 0.00f)
+            priceLayout.setVisibility(View.GONE);
+        else priceLayout.setVisibility(View.VISIBLE);
 
         TextView total_writing = (TextView) footer.findViewById(R.id.total_writing);
         total_writing.setTextColor(Statics.uiConfig.colorSkin.color4);
@@ -419,6 +457,46 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
         });
     }
 
+    protected void makeLinkClickable(SpannableStringBuilder strBuilder, final URLSpan span)
+    {
+        int start = strBuilder.getSpanStart(span);
+        int end = strBuilder.getSpanEnd(span);
+        int flags = strBuilder.getSpanFlags(span);
+        ClickableSpan clickable = new ClickableSpan() {
+            public void onClick(View view) {
+               String s = span.getURL();
+                Pattern outerPattern = Pattern.compile(pattern);
+                Matcher outerMatcher = outerPattern.matcher(s);
+                if ( outerMatcher.find() )
+                {
+                    Pattern innerPattern = Pattern.compile("\\d+");
+                    String res = outerMatcher.toMatchResult().group();
+                    Matcher innerMatcher = innerPattern.matcher(res);
+                    if ( innerMatcher.find() ){
+                        Integer order = Integer.valueOf(innerMatcher.toMatchResult().group());
+                        try {
+                            com.appbuilder.sdk.android.Statics.linkWidgets.get(order).onClick(view);
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+        strBuilder.setSpan(clickable, start, end, flags);
+        strBuilder.removeSpan(span);
+    }
+
+    protected void setTextViewHTML(TextView text, String html)
+    {
+        CharSequence sequence = Html.fromHtml(html);
+        SpannableStringBuilder strBuilder = new SpannableStringBuilder(sequence);
+        URLSpan[] urls = strBuilder.getSpans(0, sequence.length(), URLSpan.class);
+        for(URLSpan span : urls) {
+            makeLinkClickable(strBuilder, span);
+        }
+        text.setText(strBuilder);
+    }
     /**
      * The same as onResume()
      */
@@ -450,9 +528,22 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
             name.setTextColor(Statics.uiConfig.colorSkin.color4);
             name.setText(pair.productEntity.name);
 
+            TextView sku = (TextView) view.findViewById(R.id.sku);
+
+            if(TextUtils.isEmpty(pair.productEntity.sku)) {
+                sku.setVisibility(View.GONE);
+                sku.setText("");
+            } else {
+                sku.setVisibility(View.VISIBLE);
+                sku.setText(getString(R.string.item_sku) + " " + pair.productEntity.sku);
+            }
+
             TextView price = (TextView) view.findViewById(R.id.price);
             price.setTextColor(Statics.uiConfig.colorSkin.color5);
             price.setText(Utils.currencyToPosition(Statics.uiConfig.currency, pair.productEntity.price));
+            if (pair.productEntity.price == 0.00f)
+                price.setVisibility(View.INVISIBLE);
+            else price.setVisibility(View.VISIBLE);
 
             EditText quantity = (EditText) view.findViewById(R.id.quantity);
             quantity.setTag(i);
@@ -576,6 +667,11 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
 
         if (total_price != null)
             total_price.setText(com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.currencyToPosition(Statics.uiConfig.currency, totalPrice));
+
+        if (priceLayout!=null)
+        if (totalPrice == 0.00f)
+            priceLayout.setVisibility(View.GONE);
+        else priceLayout.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -599,6 +695,21 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
                 finish();
             }
         });
+
+        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+        hamburgerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animateRootContainer();
+            }
+        });
+        if (!showSideBar) {
+            hamburgerView.setVisibility(View.GONE);
+        }
+        else {
+            hamburgerView.setVisibility(View.VISIBLE);
+        }
+
     }
 
     /**

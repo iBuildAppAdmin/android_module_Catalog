@@ -87,4 +87,8 @@
         <item quantity="other">товаров</item>
         <item quantity="few">товара</item>
     </plurals>
+
+    <string name="item_sku">Артикул:</string>
+    <string name="rest_number_pattern">,00</string>
+
 </resources>

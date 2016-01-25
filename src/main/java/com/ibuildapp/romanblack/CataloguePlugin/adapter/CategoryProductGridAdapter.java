@@ -17,8 +17,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,8 +33,11 @@ import com.ibuildapp.romanblack.CataloguePlugin.ProductDetails;
 import com.ibuildapp.romanblack.CataloguePlugin.R;
 import com.ibuildapp.romanblack.CataloguePlugin.ShoppingCartPage;
 import com.ibuildapp.romanblack.CataloguePlugin.Statics;
+import com.ibuildapp.romanblack.CataloguePlugin.database.SqlAdapter;
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryProduct;
 import com.ibuildapp.romanblack.CataloguePlugin.model.OnShoppingCartItemAddedListener;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 import com.ibuildapp.romanblack.CataloguePlugin.view.RoundView;
@@ -160,20 +165,20 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
             break;
 
             case TYPE_PRODUCT: {
-                int height1 = TwoWayAbsListView.LayoutParams.MATCH_PARENT;
-                height1 = height1 * 3;
-                height1 = height1 / 2;
+               // int height1 = TwoWayAbsListView.LayoutParams.MATCH_PARENT;
+               // height1 = height1 * 9;
+                //height1 = height1 / 5;
                 view = inflater.inflate(R.layout.product_item_grid, null);
 
                 // set view holder params
-                TwoWayAbsListView.LayoutParams holderParams = (TwoWayAbsListView.LayoutParams) view.getLayoutParams();
+                /*TwoWayAbsListView.LayoutParams holderParams = (TwoWayAbsListView.LayoutParams) view.getLayoutParams();
                 if (holderParams != null) {
                     holderParams.width = TwoWayAbsListView.LayoutParams.MATCH_PARENT;
                     holderParams.height = height1;//(int)(270*context.getResources().getDisplayMetrics().density);
                 } else {
                     holderParams = new TwoWayAbsListView.LayoutParams(TwoWayAbsListView.LayoutParams.MATCH_PARENT, height1);//(int)(270*context.getResources().getDisplayMetrics().density));
                 }
-                view.setLayoutParams(holderParams);
+                view.setLayoutParams(holderParams);*/
             }
             break;
         }
@@ -201,8 +206,29 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
                     // картинка
 
                     if (TextUtils.isEmpty(categoryProduct.category.imageURL)) {
-                        ViewHolder.get(view, R.id.category_gridadapter_image).setVisibility(View.GONE);
-                        ViewHolder.get(view, R.id.category_gridadapter_gradient).setVisibility(View.GONE);
+                        ProductEntity entity = SqlAdapter.selectFirstProductForCategory(categoryProduct.category.id);
+                        if (entity != null) {
+                            ImageView img = ViewHolder.get(view, R.id.category_gridadapter_image);
+                            img.setTag(categoryProduct.category.id);
+                            Bitmap btm = imageMap.get(categoryProduct.category.id);
+                            if (btm == null || btm.getHeight() == 1) {
+                                addTask(img,
+                                        categoryProduct.category.id,
+                                        categoryProduct.category.name,
+                                        entity.imageRes,
+                                        Statics.moduleCachePath + File.separator + com.appbuilder.sdk.android.Utils.md5(entity.imageURL),
+                                        entity.imageURL, -1, -1, OnImageDoneListener.REACTION_DEFAULT);
+
+                                img.setImageResource(android.R.color.transparent);
+                                //img.setBackgroundColor(Color.parseColor("#7fffffff"));
+                                ViewHolder.get(view, R.id.category_gridadapter_gradient).setVisibility(View.GONE);
+                                categoryName.setTextColor(Statics.uiConfig.colorSkin.color1);
+                            } else {
+                                ViewHolder.get(view, R.id.category_gridadapter_gradient).setVisibility(View.VISIBLE);
+                                categoryName.setTextColor(Color.WHITE);
+                                img.setImageBitmap(btm);
+                            }
+                        }
                     } else {
                         ImageView img = ViewHolder.get(view, R.id.category_gridadapter_image);
                         img.setTag(categoryProduct.category.id);
@@ -233,13 +259,50 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
                 TextView productName = ViewHolder.get(view, R.id.product_gridadapter_name);
                 productName.setText(categoryProduct.product.name);
                 TextView productDesc = ViewHolder.get(view, R.id.product_gridadapter_description);
-                productDesc.setText(Jsoup.parse(categoryProduct.product.description).text());
+                TextView productSku = ViewHolder.get(view, R.id.product_gridadapter_sku);
+                String descriptionText = Jsoup.parse(categoryProduct.product.description).text();
+                if (descriptionText == null || "".equals(descriptionText))
+                   calculateInvisibleState(i,productDesc);
+                else productDesc.setVisibility(View.VISIBLE);
+                productDesc.setText(descriptionText);
+
+                if (categoryProduct.product.sku == null || "".equals(categoryProduct.product.sku))
+                    calculateInvisibleStateSku(i, productSku);
+                else productSku.setVisibility(View.VISIBLE);
+                productSku.setText(context.getString(R.string.item_sku)+" "+categoryProduct.product.sku);
+
                 TextView productPrice = ViewHolder.get(view, R.id.product_gridadapter_price);
                 LinearLayout rootFrame = ViewHolder.get(view, R.id.frame_root);
+                TextView oldPrice = (TextView) view.findViewById(R.id.product_gridadapter_oldprice);
+
+                if (categoryProduct.product.oldprice != -1 && categoryProduct.product.oldprice!= 0.0 ) {
+                    oldPrice.setVisibility(View.VISIBLE);
+                    String result = Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.oldprice);
+                        if (result.contains(context.getResources().getString(R.string.rest_number_pattern)))
+                            result = result.replace(context.getResources().getString(R.string.rest_number_pattern), "");
+                    oldPrice.setText(result);
+
+                    oldPrice.setPaintFlags(oldPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                    productPrice.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+
+                    if ("0.00".equals(String.format(Locale.US, "%.2f", categoryProduct.product.oldprice)))
+                        oldPrice.setVisibility(View.INVISIBLE);
+                    else
+                        productPrice.setText(Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price));
+                }
+                else {
+                    oldPrice.setVisibility(View.INVISIBLE);
+                    productPrice.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+                }
+
                 if ("0.00".equals(String.format(Locale.US, "%.2f", categoryProduct.product.price)))
                     productPrice.setText("");
-                else
-                    productPrice.setText(Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price));
+                else {
+                        String result = Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price);
+                    if (result.contains(context.getResources().getString(R.string.rest_number_pattern)))
+                        result = result.replace(context.getResources().getString(R.string.rest_number_pattern), "");
+                        productPrice.setText(result);
+                }
 
                 ImageView productImage = (ImageView) view.findViewById(R.id.product_gridadapter_image);
                 if ((Statics.uiConfig.colorSkin.color1 == Color.parseColor("#000000")))
@@ -249,7 +312,7 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
                     productImage.setVisibility(View.GONE);
                     ViewHolder.get(view, R.id.separator).setVisibility(View.GONE);
                     ViewHolder.get(view, R.id.product_gridadapter_image_layout).setVisibility(View.GONE);
-                    view.setLayoutParams(new TwoWayAbsListView.LayoutParams(TwoWayAbsListView.LayoutParams.MATCH_PARENT, (int) (75 * density)));
+                    view.setLayoutParams(new TwoWayAbsListView.LayoutParams(TwoWayAbsListView.LayoutParams.MATCH_PARENT, (int) (90 * density)));
                 } else {
                     ((RoundView) productImage).setCorners((int) (ROUND_K * density), (int) (ROUND_K * density), 0, 0);
                     productImage.setTag(categoryProduct.product.id);
@@ -258,9 +321,9 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
                         addTask(productImage,
                                 categoryProduct.product.id,
                                 categoryProduct.product.name,
-                                categoryProduct.product.thumbnailRes,
-                                Statics.moduleCachePath + File.separator + com.appbuilder.sdk.android.Utils.md5(categoryProduct.product.thumbnailURL),
-                                categoryProduct.product.thumbnailURL,
+                                categoryProduct.product.imageRes,
+                                Statics.moduleCachePath + File.separator + com.appbuilder.sdk.android.Utils.md5(categoryProduct.product.imageURL),
+                                categoryProduct.product.imageURL,
                                 -1, -1, OnImageDoneListener.REACTION_JUST_DOWNLOAD);
 
                         //productImage.setImageResource(android.R.color.transparent);
@@ -269,7 +332,14 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
                 }
 
                 View basketBtn = ViewHolder.get(view, R.id.basket_view_btn);
-                basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
+                if (Statics.isBasket){
+                    if(categoryProduct.product.itemType.equals(ProductItemType.EXTERNAL))
+                        basketBtn.setVisibility( View.GONE );
+                    else basketBtn.setVisibility(View.VISIBLE);
+                }
+                else
+                basketBtn.setVisibility(View.GONE);
+
                 basketBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -324,6 +394,67 @@ public class CategoryProductGridAdapter extends BaseImageAdapter {
         addClickListener(view, categoryProduct);
 
         return view;
+    }
+
+    private void calculateInvisibleStateSku(int position, TextView productSku) {
+        CategoryProduct currentItem = (CategoryProduct) getItem(position);
+        if (position % 2 == 0 && position ==  getCount()-1){
+            productSku.setVisibility(View.GONE);
+            return;
+        }
+
+        if (position%2 == 0 && position !=  getCount()-1 ){
+            CategoryProduct categoryProduct = (CategoryProduct) getItem(position+1);
+            if (categoryProduct.product.sku == null || "".equals(categoryProduct.product.sku)) {
+                productSku.setVisibility(View.GONE);
+            }
+            else {
+                if (!isNull(currentItem.product.description) && isNull(categoryProduct.product.description) )
+                    productSku.setVisibility(View.GONE);
+                else productSku.setVisibility(View.INVISIBLE);
+            }
+        }
+        if (position%2 == 1 ){
+            CategoryProduct categoryProduct = (CategoryProduct) getItem(position-1);
+            if (categoryProduct.product.sku == null || "".equals(categoryProduct.product.sku))
+                productSku.setVisibility(View.GONE);
+            else{
+                if (!isNull(currentItem.product.description) && isNull(categoryProduct.product.description) )
+                    productSku.setVisibility(View.GONE);
+                else productSku.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+    private boolean isNull(String s){
+        return  s == null || "".equals(s);
+    }
+    private void calculateInvisibleState(int position, TextView textDesc) {
+        CategoryProduct currentItem = (CategoryProduct) getItem(position);
+        if (position % 2 == 0 && position ==  getCount()-1){
+            textDesc.setVisibility(View.GONE);
+            return;
+        }
+
+        if (position%2 == 0 && position !=  getCount()-1 ){
+            CategoryProduct categoryProduct = (CategoryProduct) getItem(position+1);
+            if (categoryProduct.product.description == null || "".equals(categoryProduct.product.description))
+                textDesc.setVisibility(View.GONE);
+            else {
+                if (!isNull(currentItem.product.sku) && isNull(categoryProduct.product.sku) )
+                    textDesc.setVisibility(View.GONE);
+                else textDesc.setVisibility(View.INVISIBLE);
+            }
+        }
+        if (position%2 == 1 ){
+            CategoryProduct categoryProduct = (CategoryProduct) getItem(position-1);
+            if (categoryProduct.product.description == null || "".equals(categoryProduct.product.description))
+                textDesc.setVisibility(View.GONE);
+            else {
+                if (!isNull(currentItem.product.sku) && isNull(categoryProduct.product.sku) )
+                    textDesc.setVisibility(View.GONE);
+                else textDesc.setVisibility(View.INVISIBLE);
+            }
+        }
     }
 
     /**

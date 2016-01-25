@@ -22,6 +22,7 @@ import android.util.Log;
 import com.appbuilder.sdk.android.authorization.Authorization;
 import com.ibuildapp.romanblack.CataloguePlugin.Statics;
 
+import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,7 +52,14 @@ import java.util.Map;
 public class Utils {
 
     public static String TAG = Utils.class.getCanonicalName();
-
+    public static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
     /**
      * convert background color to font color
      */
@@ -73,7 +81,7 @@ public class Utils {
      */
     public static String currencyToPosition(String currencyStr, float price) {
         try {
-            Locale locale = Locale.US;
+            Locale locale = Locale.getDefault();
             Currency currency = Currency.getInstance(currencyStr);
             java.text.NumberFormat format = java.text.NumberFormat.getCurrencyInstance(locale);
             format.setCurrency(currency);
@@ -512,5 +520,45 @@ public class Utils {
         void onPositiveClick(DialogInterface dialog);
 
         void onNegativeClick(DialogInterface dialog);
+    }
+
+    public static String downloadFileAsString(String url) {
+        final int CONNECTION_TIMEOUT = 30000;
+        final int READ_TIMEOUT = 30000;
+
+        try {
+            for(int i = 0; i < 3; i++) {
+                URL fileUrl = new URL(URLDecoder.decode(url));
+                HttpURLConnection connection = (HttpURLConnection)fileUrl.openConnection();
+                connection.setConnectTimeout(CONNECTION_TIMEOUT);
+                connection.setReadTimeout(READ_TIMEOUT);
+                connection.connect();
+
+                int status = connection.getResponseCode();
+
+                if(status >= HttpStatus.SC_BAD_REQUEST) {
+                    connection.disconnect();
+
+                    continue;
+                }
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+
+                while((line = bufferedReader.readLine()) != null)
+                    stringBuilder.append(line);
+
+                bufferedReader.close();
+
+                return stringBuilder.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        return null;
     }
 }

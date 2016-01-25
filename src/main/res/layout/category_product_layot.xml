@@ -42,12 +42,25 @@
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/hamburger_view_btn"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:visibility="invisible"
+                android:layout_marginRight="10dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/hamburger_black" />
+
+            <ImageView
                 android:id="@+id/basket_view_btn"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="9dp"
+                android:layout_toLeftOf="@id/hamburger_view_btn"
+                android:visibility="invisible"
                 android:src="@drawable/basket_image" />
 
             <TextView

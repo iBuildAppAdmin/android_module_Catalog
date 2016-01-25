@@ -10,14 +10,6 @@
  ****************************************************************************/
 package com.ibuildapp.romanblack.CataloguePlugin.task;
 
-/**
- * Created with IntelliJ IDEA.
- * User: SimpleIce
- * Date: 10.09.14
- * Time: 13:17
- * To change this template use File | Settings | File Templates.
- */
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;

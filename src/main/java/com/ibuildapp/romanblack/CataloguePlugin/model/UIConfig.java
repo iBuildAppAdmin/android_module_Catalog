@@ -16,9 +16,11 @@ import java.io.Serializable;
  * Describes settings for currency, mainpage style in handset mode and colorschema
  */
 public class UIConfig implements Serializable {
-
+    public String url = "";
     public String currency = "$";                       // price currency
     public String currencyPosition = "left";            // currency position
     public String mainpagestyle = "list";               // categiry view style grid\list
     public ColorSkin colorSkin = new ColorSkin();       // colorskin
+    public boolean showLikeButton = true;
+    public boolean showShareButton = true;
 }

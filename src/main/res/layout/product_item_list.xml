@@ -12,6 +12,7 @@
         android:layout_marginLeft="6dp"
         android:layout_marginRight="6dp"
         android:layout_marginTop="3dp"
+        android:padding="1px"
         android:background="@drawable/rounded_corners_black">
 
         <RelativeLayout
@@ -51,10 +52,26 @@
                 android:textSize="15dp" />
 
             <TextView
-                android:id="@+id/product_gridadapter_description"
+                android:id="@+id/product_gridadapter_sku"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/product_gridadapter_name"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="4dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="2dp"
+                android:layout_toRightOf="@+id/product_separator"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Артикул: 12345678901234"
+                android:textColor="@color/black_trans_60"
+                android:textSize="13dp" />
+
+            <TextView
+                android:id="@+id/product_gridadapter_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/product_gridadapter_sku"
                 android:layout_marginLeft="6dp"
                 android:layout_marginRight="4dp"
                 android:layout_marginTop="4dp"
@@ -74,15 +91,25 @@
                 android:layout_toRightOf="@+id/product_separator"
                 android:text="New Text"
                 android:textColor="@color/black"
-                android:textSize="15dp"
-                android:textStyle="bold" />
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/product_gridadapter_oldprice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/product_gridadapter_price"
+                android:layout_marginTop="4dp"
+                android:layout_toRightOf="@+id/product_separator"
+                android:text="New Text"
+                android:textColor="@color/black_trans_60"
+                android:textSize="15dp"/>
 
             <ImageView
                 android:id="@+id/basket_view_btn"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_alignParentRight="true"
-                android:layout_below="@+id/product_gridadapter_description"
+                android:layout_below="@+id/product_gridadapter_price"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="5dp"
@@ -93,7 +120,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/rounded_corners_black"
             android:orientation="vertical"></LinearLayout>
     </FrameLayout>
 </LinearLayout>

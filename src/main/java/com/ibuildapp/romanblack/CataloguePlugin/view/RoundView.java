@@ -77,7 +77,7 @@ public class RoundView extends ImageView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         double res = MeasureSpec.getSize(widthMeasureSpec);
-        res = res * 6;
+        res = res * 7;
         res = res / 5;
         int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
         this.setMeasuredDimension(parentWidth, (int) res);
@@ -101,4 +101,3 @@ public class RoundView extends ImageView {
     }
 
 }
- 

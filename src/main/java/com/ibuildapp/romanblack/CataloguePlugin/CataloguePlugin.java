@@ -39,6 +39,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryProduct;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
+import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 import com.ibuildapp.romanblack.CataloguePlugin.view.SearchView;
 import com.ibuildapp.romanblack.CataloguePlugin.xml.XmlParser;
 import com.jess.ui.TwoWayAbsListView;
@@ -58,7 +59,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     private ListView list;
     private TwoWayGridView grid;
     private LinearLayout root;
-    private List<CategoryProduct> categoryProductList = new ArrayList<CategoryProduct>();
+    private List<CategoryProduct> categoryProductList = new ArrayList<>();
     private BaseImageAdapter adapter;
     private TextView title;
     private ImageView searchViewBtn;
@@ -69,9 +70,10 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     private RelativeLayout titleHolder;
     private float density;
     private String pageTitle;
+    private int shopingCartIndex;
     private Thread loader;
     private boolean destroyed;
-
+    private String url = "http://ibuilder.solovathost.com/test/data.catalog.xml";
     /**
      * The same as onCreate()
      */
@@ -91,6 +93,13 @@ public class CataloguePlugin extends AppBuilderModuleMain {
             public void run() {
                 XmlParser parser = new XmlParser(widgetXml);
                 parser.parser();
+
+                url = parser.getUiConfig().url;
+                if (!url.equals("")) {
+                    widgetXml = Utils.downloadFileAsString(url);
+                    parser = new XmlParser(widgetXml);
+                    parser.parser();
+                }
                 Statics.uiConfig = parser.getUiConfig();
                 Statics.PAYPAL_CLIENT_ID = parser.getPaymentData() == null ? "" : parser.getPaymentData().getClientId();
                 Statics.ENDPOINT = com.appbuilder.sdk.android.Statics.BASE_DOMEN + BASE_ENDPOINT;
@@ -99,20 +108,43 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                     @Override
                     public void run() {
                         root.setBackgroundColor(Statics.uiConfig.colorSkin.color1);
+
+                        // final boolean showSideBar = ((Boolean) getIntent().getExtras().getSerializable("showSideBar")).booleanValue();
+                        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+                        hamburgerView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                animateRootContainer();
+                            }
+                        });
                         View basketBtn = findViewById(R.id.basket_view_btn);
-                        basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
-                        basketBtn.setOnClickListener(new View.OnClickListener() {
+                        View.OnClickListener listener = new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 Intent intent = new Intent(CataloguePlugin.this, ShoppingCartPage.class);
                                 startActivity(intent);
                             }
-                        });
+                        };
+                        basketBtn.setOnClickListener(listener);
+                        if (!showSideBar) {
+                            hamburgerView.setVisibility(View.GONE);
+                            basketBtn.setVisibility(View.VISIBLE);
+                            basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
+                            findViewById(R.id.cart_items).setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            hamburgerView.setVisibility(View.VISIBLE);
+                            findViewById(R.id.cart_items).setVisibility(View.INVISIBLE);
+                            basketBtn.setVisibility(View.GONE);
+                            if(Statics.isBasket)
+                                shopingCartIndex = setTopBarRightButton(basketBtn, getResources().getString(R.string.shopping_cart), listener);
+                        }
                         resume();
 
                         if (!Statics.isBasket) {
                             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchViewBtn.getLayoutParams();
-                            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                            if (!showSideBar)
+                                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                         } else {
                             List<ShoppingCart.Product> products = ShoppingCart.getProducts();
                             int count = 0;
@@ -122,14 +154,20 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
                             TextView cart_items = (TextView) findViewById(R.id.cart_items);
                             cart_items.setText(String.valueOf(count));
+                            if (showSideBar) {
+                                StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
+                                if (count > 0)
+                                    resString.append(" (" + String.valueOf(count) + ")");
+                                updateWidgetInActualList(shopingCartIndex, resString.toString() );
+                            }
                         }
                     }
                 });
 
                 SqlAdapter.deleteDataFromTables();
                 List<CategoryEntity> categoryEntityList = parser.getCategoryList();
-                List<CategoryEntity> categorListToDelete = new ArrayList<CategoryEntity>();
-                List<CategoryEntity> categorListToInsert = new ArrayList<CategoryEntity>();
+                List<CategoryEntity> categorListToDelete = new ArrayList<>();
+                List<CategoryEntity> categorListToInsert = new ArrayList<>();
                 for (CategoryEntity cat : categoryEntityList) {
                     if (cat.valid) {
                         categorListToInsert.add(cat);
@@ -140,8 +178,8 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                 SqlAdapter.insertCategoryRows(categorListToInsert);
 
                 List<ProductEntity> productEntityList = parser.getProductList();
-                List<ProductEntity> productListToDelete = new ArrayList<ProductEntity>();
-                List<ProductEntity> productListToInsert = new ArrayList<ProductEntity>();
+                List<ProductEntity> productListToDelete = new ArrayList<>();
+                List<ProductEntity> productListToInsert = new ArrayList<>();
                 for (ProductEntity prod : productEntityList) {
                     if (prod.valid) {
                         productListToInsert.add(prod);
@@ -455,7 +493,13 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
         TextView cart_items = (TextView) findViewById(R.id.cart_items);
         cart_items.setText(String.valueOf(count));
-        cart_items.setVisibility(count > 0 && Statics.isBasket ? View.VISIBLE : View.GONE);
+        cart_items.setVisibility(count > 0 && Statics.isBasket && !showSideBar ? View.VISIBLE : View.GONE);
+        if (showSideBar) {
+            StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
+            if (count > 0)
+                resString.append(" (" + String.valueOf(count) + ")");
+            updateWidgetInActualList(shopingCartIndex, resString.toString() );
+        }
     }
 
     /**
@@ -470,4 +514,3 @@ public class CataloguePlugin extends AppBuilderModuleMain {
         loader.interrupt();
     }
 }
- 

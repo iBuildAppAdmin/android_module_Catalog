@@ -19,10 +19,12 @@ import android.util.Log;
 
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.model.UserProfile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -134,9 +136,15 @@ public class SqlAdapter {
                 + " PRODUCT_NAME_LOWER TEXT, "
                 + " DESCRIPTION TEXT, "
                 + " DESCRIPTION_LOWER TEXT, "
+                + " SKU TEXT, "
                 + " PRICE REAL, "
+                + " OLDPRICE REAL, "
+                + " ITEM_TYPE TEXT, "
+                + " ITEM_URL TEXT, "
+                + " ITEM_BUTTON_TEXT TEXT, "
                 + " IMAGE_URL TEXT, "
                 + " IMAGE_RES TEXT, "
+                + " IMAGE_URLS TEXT, "
                 + " IMAGE_PATH TEXT, "
                 + " THUMBNAIL_URL TEXT, "
                 + " THUMBNAIL_RES TEXT, "
@@ -293,13 +301,22 @@ public class SqlAdapter {
         try {
             if (isExistOrCreate()) {
                 ContentValues contentValues = new ContentValues(rows.size());
-                for (CategoryEntity entity : rows) {
-                    try {
-                        fillCategory(contentValues, entity);
-                        long result = db.insertWithOnConflict(createTableName(CATEGORIES), "", contentValues, SQLiteDatabase.CONFLICT_REPLACE);
-                    } catch (Exception ex) {
-                        Log.e(TAG, "");
+                try {
+                    db.beginTransaction();
+                    for (CategoryEntity entity : rows) {
+                        try {
+                            fillCategory(contentValues, entity);
+                            long result = db.insertWithOnConflict(createTableName(CATEGORIES), "", contentValues, SQLiteDatabase.CONFLICT_REPLACE);
+                        } catch (Exception ex) {
+                            Log.e(TAG, "");
+                        }
                     }
+                    db.setTransactionSuccessful();
+                }catch (Throwable e){
+
+                }
+                finally {
+                    db.endTransaction();
                 }
             }
         } catch (Exception e) {
@@ -315,6 +332,8 @@ public class SqlAdapter {
         try {
             if (isExistOrCreate()) {
                 ContentValues contentValues = new ContentValues();
+                try {
+                    db.beginTransaction();
                 for (ProductEntity entity : rows) {
                     try {
                         fillProduct(contentValues, entity);
@@ -322,6 +341,13 @@ public class SqlAdapter {
                     } catch (Exception ex) {
                         Log.e(TAG, "");
                     }
+                }
+                    db.setTransactionSuccessful();
+                }catch (Throwable e){
+
+                }
+                finally {
+                    db.endTransaction();
                 }
             }
         } catch (Exception e) {
@@ -404,10 +430,26 @@ public class SqlAdapter {
         contentValues.put("PRODUCT_NAME_LOWER", entity.name.toLowerCase());
         contentValues.put("DESCRIPTION", entity.description);
         contentValues.put("DESCRIPTION_LOWER", entity.description.toLowerCase());
+        contentValues.put("SKU", entity.sku);
         contentValues.put("VISIBLE", entity.visibility);
         contentValues.put("PRICE", entity.price);
+        contentValues.put("OLDPRICE", entity.oldprice);
+        contentValues.put("ITEM_TYPE", entity.itemType.name());
+        contentValues.put("ITEM_URL", entity.itemUrl);
+        contentValues.put("ITEM_BUTTON_TEXT", entity.itemButtonText);
         contentValues.put("IMAGE_URL", entity.imageURL);
         contentValues.put("IMAGE_RES", entity.imageRes);
+        if (entity.imageUrls!=null&& !entity.imageUrls.isEmpty()){
+            String replace = "%replace%";
+            StringBuilder builder = new StringBuilder();
+            for (String s:entity.imageUrls ){
+                builder.append(s);
+                builder.append(replace);
+            }
+            builder.delete(builder.lastIndexOf(replace), builder.length());
+            contentValues.put("IMAGE_URLS", builder.toString());
+        }else
+            contentValues.put("IMAGE_URLS", "");
         contentValues.put("IMAGE_PATH", entity.imagePath);
         contentValues.put("THUMBNAIL_URL", entity.thumbnailURL);
         contentValues.put("THUMBNAIL_RES", entity.thumbnailRes);
@@ -630,16 +672,16 @@ public class SqlAdapter {
 
         try {
             if (!isExistOrCreate()) {
-                return new ArrayList<ProductEntity>();
+                return new ArrayList<>();
             }
 
             Cursor cursor = db.query(createTableName(PRODUCTS), null, "CATEGORY_ID = ? AND VISIBLE = ?", new String[]{String.valueOf(categoryId), "1"}, null, null, "ORDERVAL");
 
             if (cursor == null || cursor.getCount() <= 0) {
-                return new ArrayList<ProductEntity>();
+                return new ArrayList<>();
             }
 
-            result = new ArrayList<ProductEntity>(cursor.getCount());
+            result = new ArrayList<>(cursor.getCount());
             if (cursor.moveToFirst()) {
                 do {
                     result.add(parseProduct(cursor));
@@ -647,17 +689,45 @@ public class SqlAdapter {
             }
             cursor.close();
         } catch (Exception e) {
-            result = new ArrayList<ProductEntity>();
+            result = new ArrayList<>();
         }
         return result;
     }
 
+    public static ProductEntity selectFirstProductForCategory(int categoryId) {
+        ProductEntity result = null;
+
+        if (categoryId < 0) {
+            throw new IllegalArgumentException("Category id must be great or equal 0");
+        }
+
+        try {
+            if (!isExistOrCreate()) {
+                return null;
+            }
+
+            Cursor cursor = db.query(createTableName(PRODUCTS), null, "CATEGORY_ID = ? AND VISIBLE = ?", new String[]{String.valueOf(categoryId), "1"}, null, null, "ORDERVAL", "1");
+
+            if (cursor == null || cursor.getCount() <= 0) {
+                return null;
+            }
+
+            if (cursor.moveToFirst())
+                    result = parseProduct(cursor);
+
+            cursor.close();
+        } catch (Exception e) {
+            result = null;
+        }
+        return result;
+    }
     /**
      * Select products from DB with product id
      *
      * @param productId product id
      * @return list of products
      */
+
     public static ProductEntity selectProductById(int productId) {
         ProductEntity result = null;
 
@@ -862,9 +932,19 @@ public class SqlAdapter {
                 entity.name = cursor.getString(i);
             } else if (cursor.getColumnName(i).equals("DESCRIPTION")) {
                 entity.description = cursor.getString(i);
+            } else if (cursor.getColumnName(i).equals("SKU")) {
+                entity.sku = cursor.getString(i);
             } else if (cursor.getColumnName(i).equals("PRICE")) {
                 entity.price = cursor.getFloat(i);
-            } else if (cursor.getColumnName(i).equals("IMAGE_URL")) {
+            } else if (cursor.getColumnName(i).equals("OLDPRICE")) {
+                entity.oldprice = cursor.getFloat(i);
+            }else if (cursor.getColumnName(i).equals("ITEM_TYPE")) {
+                entity.itemType = ProductItemType.valueOf(cursor.getString(i));
+            }else if (cursor.getColumnName(i).equals("ITEM_URL")) {
+                entity.itemUrl = cursor.getString(i);
+            }else if (cursor.getColumnName(i).equals("ITEM_BUTTON_TEXT")) {
+                entity.itemButtonText = cursor.getString(i);
+            }else if (cursor.getColumnName(i).equals("IMAGE_URL")) {
                 entity.imageURL = cursor.getString(i);
             } else if (cursor.getColumnName(i).equals("IMAGE_RES")) {
                 entity.imageRes = cursor.getString(i);
@@ -880,6 +960,12 @@ public class SqlAdapter {
                 entity.categoryId = cursor.getInt(i);
             } else if (cursor.getColumnName(i).equals("ORDERVAL")) {
                 entity.order = cursor.getInt(i);
+            }else if (cursor.getColumnName(i).equals("IMAGE_URLS")){
+                String res = cursor.getString(i);
+                if (res!= null && !"".equals(res)){
+                    List<String> listRes = Arrays.asList(res.split("%replace%"));
+                    entity.imageUrls = listRes;
+                }else entity.imageUrls = new ArrayList<>();
             }
         }
         return entity;

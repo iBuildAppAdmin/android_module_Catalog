@@ -24,6 +24,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.Statics;
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.PaymentData;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCartFields;
 import com.ibuildapp.romanblack.CataloguePlugin.model.UIConfig;
 
@@ -31,6 +32,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 /**
  * This class pars build-in xml
@@ -75,6 +77,7 @@ public class XmlParser {
         Element productElement = root.getChild("items");
         Element paymentDataElement = root.getChild("payment_data");
         Element shoppingCart = checkRequirement ? styleElement.requireChild("shoppingcart") : styleElement.getChild("shoppingcart");
+        Element shopingCartDescription = shoppingCart.getChild("cartdescription");
         Element orderConfirmation = shoppingCart.getChild("orderconfirmation");
         Element orderForm = shoppingCart.getChild("orderform");
         Statics.isShoppingCartPayPalBased = true;
@@ -84,6 +87,38 @@ public class XmlParser {
             @Override
             public void end(String body) {
                 uiConfig.currency = body.trim();
+            }
+        });
+        styleElement.getChild("data_host").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String body) {
+                uiConfig.url = body.trim();
+                return;
+            }
+        });
+        styleElement.getChild("enabled_buttons").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String body) {
+                try {
+                    Integer res = Integer.valueOf(body.trim());
+                    int a1 = res % 10;
+                    int a2 = res / 10;
+                    boolean value1;
+                    if (a1 > 0)
+                        value1 = true;
+                    else value1 = false;
+
+                    boolean value2;
+                    if (a2 > 0)
+                        value2 = true;
+                    else value2 = false;
+
+                    uiConfig.showLikeButton = value1;
+                    uiConfig.showShareButton = value2;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
@@ -353,6 +388,12 @@ public class XmlParser {
             }
         });
 
+        shopingCartDescription.setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String body) {
+                Statics.shoppingCartFields.description = body.trim();
+            }
+        });
         orderConfirmation.getChild("orderTitle").setEndTextElementListener(new EndTextElementListener() {
             @Override
             public void end(String s) {
@@ -534,6 +575,53 @@ public class XmlParser {
             }
         });
 
+        productElement.getChild("item").getChild("images").getChild("image").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String body) {
+                tempProduct.imageUrls.add(body.trim());
+            }
+        });
+        productElement.getChild("item").getChild("itemoldprice").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String s) {
+                try {
+                    tempProduct.oldprice = Float.parseFloat(s.trim());
+                } catch (NumberFormatException e) {
+                    tempProduct.oldprice = -1;
+                }
+            }
+        });
+
+        productElement.getChild("item").getChild("itemtype").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String s) {
+                try {
+                    tempProduct.itemType = ProductItemType.valueOf(s.trim().toUpperCase());
+                } catch (NumberFormatException e) {
+                }
+            }
+        });
+
+        productElement.getChild("item").getChild("itemurl").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String s) {
+                try {
+                    tempProduct.itemUrl = s.trim();
+                } catch (NumberFormatException e) {
+                }
+            }
+        });
+
+        productElement.getChild("item").getChild("itembuttontext").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String s) {
+                try {
+                    tempProduct.itemButtonText = s.trim();
+                } catch (NumberFormatException e) {
+                }
+            }
+        });
+
         productElement.getChild("item").getChild("image").setEndTextElementListener(new EndTextElementListener() {
             @Override
             public void end(String body) {
@@ -559,6 +647,13 @@ public class XmlParser {
             @Override
             public void end(String body) {
                 tempProduct.thumbnailRes = body.trim();
+            }
+        });
+
+        productElement.getChild("item").getChild("itemsku").setEndTextElementListener(new EndTextElementListener() {
+            @Override
+            public void end(String body) {
+                tempProduct.sku = body.trim();
             }
         });
 
@@ -667,7 +762,7 @@ public class XmlParser {
         }
 
         if (!TextUtils.isEmpty(attributes.getValue("pid"))) {
-            tempEntity.item_id = Integer.decode(attributes.getValue("pid"));
+            tempEntity.item_id = Long.decode(attributes.getValue("pid"));
         } else {
             tempEntity.item_id = -1;
         }

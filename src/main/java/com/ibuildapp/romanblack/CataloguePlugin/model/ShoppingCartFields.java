@@ -24,6 +24,7 @@ public class ShoppingCartFields {
     public Field note = new Field.Builder().setVisible(true).setRequired(false).setMultiline(false).build();
     public String orderTitle = "";
     public String orderText = "";
+    public String description;
 
     public static class Field {
 

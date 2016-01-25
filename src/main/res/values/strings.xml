@@ -87,4 +87,8 @@
         <item quantity="other">items</item>
         <item quantity="few">items</item>
     </plurals>
+
+    <string name="item_sku">SKU:</string>
+    <string name="rest_number_pattern">.00</string>
+
 </resources>

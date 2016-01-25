@@ -18,8 +18,15 @@ import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -30,21 +37,26 @@ import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.appbuilder.sdk.android.AppBuilderModuleMain;
+import com.appbuilder.sdk.android.AppBuilderModuleMainAppCompat;
 import com.appbuilder.sdk.android.DialogSharing;
 import com.appbuilder.sdk.android.Utils;
 import com.appbuilder.sdk.android.authorization.Authorization;
 import com.appbuilder.sdk.android.authorization.FacebookAuthorizationActivity;
 import com.ibuildapp.PayPalAndroidUtil.Payer;
+import com.ibuildapp.romanblack.CataloguePlugin.adapter.DetailsViewPagerAdapter;
+import com.ibuildapp.romanblack.CataloguePlugin.adapter.RoundAdapter;
 import com.ibuildapp.romanblack.CataloguePlugin.database.SqlAdapter;
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.OnShoppingCartItemAddedListener;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.view.AlphaImageView;
 import com.seppius.i18n.plurals.PluralResources;
@@ -59,8 +71,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCartItemAddedListener {
-
+public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnShoppingCartItemAddedListener {
+    private static final Integer TOP_BAR_HEIGHT = 50;
     private final String EMAIL_IMAGE_NAME = "image.jpg";
     private final int FACEBOOK_AUTHORIZATION_ACTIVITY = 10000;
     private final int TWITTER_AUTHORIZATION_ACTIVITY = 10001;
@@ -71,13 +83,23 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
     private LinearLayout backBtn;
     private TextView title;
     private TextView productTitle;
+    private TextView product_sku;
     private WebView productDescription;
     private TextView productPrice;
     private TextView likeCount;
     private LinearLayout shareBtn;
     private LinearLayout likeBtn;
     private ImageView likeImage;
+    private EditText quantity;
+    private RelativeLayout buyLayout;
+    private RelativeLayout navBarHolder;
 
+    private TabLayout tabLayout;
+    private ViewPager pager;
+    private DetailsViewPagerAdapter adapter;
+    private RecyclerView roundsList;
+    private int oldCurrentItem = -1;
+    private int newCurrentItem = -1;
 
     private int productId;
     private ProductEntity product;
@@ -87,7 +109,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
     private int screenWidth;
     private boolean likedbyMe = false;
     private boolean alreadyLoaded = false;
-
+    private int shopingCartIndex;
     private Payer payer = new Payer();
 
     private boolean thanksPage = false;
@@ -134,23 +156,98 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
         setContentView(R.layout.details_layout);
         hideTopBar();
 
-        int apply_button_padding_left;
+        navBarHolder = (RelativeLayout) findViewById(R.id.navbar_holder);
+        List<String> imageUrls = new ArrayList<>();
+        imageUrls.add(product.imageURL);
+        imageUrls.addAll(product.imageUrls);
 
+        final float density = getResources().getDisplayMetrics().density;
+        int topBarHeight = (int) (TOP_BAR_HEIGHT*density);
         TextView apply_button = (TextView) findViewById(R.id.apply_button);
         View basket = findViewById(R.id.basket);
         View bottomSeparator = findViewById(R.id.bottom_separator);
+        quantity = (EditText) findViewById(R.id.quantity);
+
+        roundsList = (RecyclerView) findViewById(R.id.details_recyclerview);
+        if (imageUrls.size() <= 1)
+            roundsList.setVisibility(View.GONE);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+
+        roundsList.setLayoutManager(layoutManager);
+        pager = (ViewPager) findViewById(R.id.viewpager);
+
+        if (!"".equals(imageUrls.get(0))) {
+
+            final RoundAdapter rAdapter = new RoundAdapter(this, imageUrls);
+            roundsList.setAdapter(rAdapter);
+
+
+            float width = getResources().getDisplayMetrics().widthPixels;
+            float height = getResources().getDisplayMetrics().heightPixels;
+            height -= 2 * topBarHeight;
+            height -= com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.getStatusBarHeight(this);
+            pager.getLayoutParams().width = (int) width;
+            pager.getLayoutParams().height = (int) height;
+            newCurrentItem = 0;
+            pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    oldCurrentItem = newCurrentItem;
+                    newCurrentItem = position;
+
+                    rAdapter.setCurrentItem(newCurrentItem);
+                    rAdapter.notifyItemChanged(newCurrentItem);
+
+                    if (oldCurrentItem != -1)
+                        rAdapter.notifyItemChanged(oldCurrentItem);
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
+            pager.setPageTransformer(true, new InnerPageTransformer());
+            adapter = new DetailsViewPagerAdapter(getSupportFragmentManager(), imageUrls);
+            roundsList.addItemDecoration(new RecyclerView.ItemDecoration() {
+                @Override
+                public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+                    int totalWidth = (int) (adapter.getCount() * 21 * density);
+                    int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                    int position = parent.getChildAdapterPosition(view);
+
+                    if ((totalWidth < screenWidth)
+                            && position == 0)
+                        outRect.left = (screenWidth - totalWidth) / 2;
+                }
+            });
+
+            pager.setAdapter(adapter);
+        }
+        else{
+            roundsList.setVisibility(View.GONE);
+            pager.setVisibility(View.GONE);
+        }
+        buyLayout = (RelativeLayout) findViewById(R.id.details_buy_layout);
+
+        if (product.itemType.equals(ProductItemType.EXTERNAL))
+            quantity.setVisibility(View.GONE);
+        else quantity.setVisibility(View.VISIBLE);
 
         if (Statics.isBasket) {
-            apply_button.setText(R.string.shopping_cart_add_to_cart);
-            basket.setVisibility(View.VISIBLE);
-            apply_button_padding_left = (int) (55 * getResources().getDisplayMetrics().density + 0.5);
-            apply_button.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-            apply_button.setPadding(apply_button_padding_left, 0, 0, 0);
+            buyLayout.setVisibility(View.VISIBLE);
             onShoppingCartItemAdded();
             apply_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     String message = "";
+                    int quant = Integer.valueOf(quantity.getText().toString());
                     List<ShoppingCart.Product> products = ShoppingCart.getProducts();
                     int count = 0;
 
@@ -158,7 +255,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                         count += product.getQuantity();
 
                     try {
-                        message = new PluralResources(getResources()).getQuantityString(R.plurals.items_to_cart, count + 1, count + 1);
+                        message = new PluralResources(getResources()).getQuantityString(R.plurals.items_to_cart, count + quant, count + quant);
                     } catch (NoSuchMethodException e) {
                         e.printStackTrace();
                     }
@@ -168,7 +265,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                             .build());
                     ShoppingCart.insertProduct(new ShoppingCart.Product.Builder()
                             .setId(product.id)
-                            .setQuantity((index == -1 ? 0 : products.get(index).getQuantity()) + 1)
+                            .setQuantity((index == -1 ? 0 : products.get(index).getQuantity()) + quant)
                             .build());
                     onShoppingCartItemAdded();
                     com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.showDialog(ProductDetails.this,
@@ -190,18 +287,38 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                             });
                 }
             });
+            if (product.itemType.equals(ProductItemType.EXTERNAL)) {
+                basket.setVisibility(View.GONE);
+                apply_button.setText(product.itemButtonText);
+                apply_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(ProductDetails.this, ExternalProductDetailsActivity.class);
+                        intent.putExtra("itemUrl", product.itemUrl);
+                        startActivity(intent);
+                    }
+                });
+            }else {
+                basket.setVisibility(View.VISIBLE);
+                apply_button.setText(R.string.shopping_cart_add_to_cart);
+            }
         } else {
+            if (product.itemType.equals(ProductItemType.EXTERNAL))
+                buyLayout.setVisibility(View.VISIBLE);
+                else buyLayout.setVisibility(View.GONE);
+
             apply_button.setText(R.string.buy_now);
             basket.setVisibility(View.GONE);
             findViewById(R.id.cart_items).setVisibility(View.GONE);
-            apply_button_padding_left = 0;
+            /*apply_button_padding_left = 0;
             apply_button.setGravity(Gravity.CENTER);
-            apply_button.setPadding(apply_button_padding_left, 0, 0, 0);
+            apply_button.setPadding(apply_button_padding_left, 0, 0, 0);*/
 
             if (TextUtils.isEmpty(Statics.PAYPAL_CLIENT_ID) || product.price == 0) {
                 bottomSeparator.setVisibility(View.GONE);
                 apply_button.setVisibility(View.GONE);
                 basket.setVisibility(View.GONE);
+
             } else {
                 apply_button.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -220,6 +337,20 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                     }
                 });
             }
+
+            if (product.itemType.equals(ProductItemType.EXTERNAL)) {
+                basket.setVisibility(View.GONE);
+                apply_button.setText(product.itemButtonText);
+                apply_button.setVisibility(View.VISIBLE);
+                apply_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(ProductDetails.this, ExternalProductDetailsActivity.class);
+                        intent.putExtra("itemUrl", product.itemUrl);
+                        startActivity(intent);
+                    }
+                });
+            }
         }
 
         backBtn = (LinearLayout) findViewById(R.id.back_btn);
@@ -235,17 +366,47 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
             title.setText(category.name);
 
         View basketBtn = findViewById(R.id.basket_view_btn);
-        basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
-        basketBtn.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(ProductDetails.this, ShoppingCartPage.class);
                 startActivity(intent);
             }
+        };
+        basketBtn.setOnClickListener(listener);
+        View hamburgerView = findViewById(R.id.hamburger_view_btn);
+        hamburgerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animateRootContainer();
+            }
         });
+        if (!showSideBar) {
+            hamburgerView.setVisibility(View.GONE);
+            basketBtn.setVisibility(View.VISIBLE);
+            basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
+            findViewById(R.id.cart_items).setVisibility(View.VISIBLE);
+        }
+        else {
+            hamburgerView.setVisibility(View.VISIBLE);
+            findViewById(R.id.cart_items).setVisibility(View.INVISIBLE);
+            basketBtn.setVisibility(View.GONE);
+            if(Statics.isBasket)
+                shopingCartIndex = setTopBarRightButton(basketBtn, getResources().getString(R.string.shopping_cart), listener);
+        }
 
         productTitle = (TextView) findViewById(R.id.product_title);
         productTitle.setText(product.name);
+
+        product_sku = (TextView) findViewById(R.id.product_sku);
+
+        if(TextUtils.isEmpty(product.sku)) {
+            product_sku.setVisibility(View.GONE);
+            product_sku.setText("");
+        } else {
+            product_sku.setVisibility(View.VISIBLE);
+            product_sku.setText(getString(R.string.item_sku) + " " + product.sku);
+        }
 
         productDescription = (WebView) findViewById(R.id.product_description);
         productDescription.getSettings().setJavaScriptEnabled(true);
@@ -254,7 +415,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
         productDescription.setWebViewClient(new WebViewClient() {
             @Override
             public void onLoadResource(WebView view, String url) {
-                if (!alreadyLoaded && (url.startsWith("http://www.youtube.com/get_video_info?") || url.startsWith("https://www.youtube.com/get_video_info?")) && Build.VERSION.SDK_INT < 11) {
+                if (!alreadyLoaded && (url.startsWith("http://www.youtube.com/get_video_info?") || url.startsWith("https://www.youtube.com/get_video_info?")) && Build.VERSION.SDK_INT <= 11) {
                     try {
                         String path = url.contains("https://www.youtube.com/get_video_info?") ?
                                 url.replace("https://www.youtube.com/get_video_info?", "") :
@@ -295,18 +456,18 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if(url.startsWith("tel:")) {
+                if (url.startsWith("tel:")) {
                     Intent intent = new Intent(Intent.ACTION_DIAL,
                             Uri.parse(url));
                     startActivity(intent);
 
                     return true;
-                } else if(url.startsWith("mailto:")) {
+                } else if (url.startsWith("mailto:")) {
                     Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(url));
                     startActivity(intent);
 
                     return true;
-                } else if(url.contains("youtube.com")) {
+                } else if (url.contains("youtube.com")) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com")).setData(Uri.parse(url)));
 
@@ -323,7 +484,10 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
 
         productPrice = (TextView) findViewById(R.id.product_price);
         productPrice.setVisibility("0.00".equals(String.format(Locale.US, "%.2f", product.price)) ? View.GONE : View.VISIBLE);
-        productPrice.setText(com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.currencyToPosition(Statics.uiConfig.currency, product.price));
+        String result = com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.currencyToPosition(Statics.uiConfig.currency, product.price);
+        if (result.contains(getResources().getString(R.string.rest_number_pattern)))
+            result = result.replace(getResources().getString(R.string.rest_number_pattern),"");
+        productPrice.setText(result);
 
         likeCount = (TextView) findViewById(R.id.like_count);
         likeImage = (ImageView) findViewById(R.id.like_image);
@@ -353,6 +517,10 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
         }
 
         shareBtn = (LinearLayout) findViewById(R.id.share_button);
+        if (Statics.uiConfig.showShareButton)
+            shareBtn.setVisibility(View.VISIBLE);
+        else shareBtn.setVisibility(View.GONE);
+
         shareBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -455,6 +623,10 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
         });
 
         likeBtn = (LinearLayout) findViewById(R.id.like_button);
+        if (Statics.uiConfig.showLikeButton)
+            likeBtn.setVisibility(View.VISIBLE);
+        else likeBtn.setVisibility(View.GONE);
+
         likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -568,6 +740,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
 
         // product bitmap rendering
         image = (AlphaImageView) findViewById(R.id.product_image);
+        image.setVisibility(View.GONE);
         if (!TextUtils.isEmpty(product.imageRes)) {
             try {
                 InputStream input = manager.open(product.imageRes);
@@ -591,7 +764,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                     float ratio = (float) btm.getWidth() / (float) btm.getHeight();
                     image.setLayoutParams(new LinearLayout.LayoutParams(screenWidth, (int) (screenWidth / ratio)));
                     image.setImageBitmapWithAlpha(btm);
-                    image.setVisibility(View.VISIBLE);
+                    image.setVisibility(View.GONE);
                     return;
                 }
             }
@@ -614,7 +787,7 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
                                         float ratio = (float) btm.getWidth() / (float) btm.getHeight();
                                         image.setLayoutParams(new LinearLayout.LayoutParams(screenWidth, (int) (screenWidth / ratio)));
                                         image.setImageBitmapWithAlpha(btm);
-                                        image.setVisibility(View.VISIBLE);
+                                        image.setVisibility(View.GONE);
                                     }
                                 }
                             });
@@ -1002,7 +1175,52 @@ public class ProductDetails extends AppBuilderModuleMain implements OnShoppingCa
 
         TextView cart_items = (TextView) findViewById(R.id.cart_items);
         cart_items.setText(String.valueOf(count));
-        cart_items.setVisibility(count > 0 && Statics.isBasket ? View.VISIBLE : View.GONE);
+        cart_items.setVisibility(count > 0 && Statics.isBasket && !showSideBar ? View.VISIBLE : View.GONE);
+
+        if (showSideBar && Statics.isBasket) {
+            StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
+            if (count > 0)
+                resString.append(" (" + String.valueOf(count) + ")");
+            updateWidgetInActualList(shopingCartIndex, resString.toString());
+        }
     }
+
+    public static class InnerPageTransformer implements ViewPager.PageTransformer {
+        private static final float MIN_SCALE = 0.75f;
+
+        public void transformPage(View view, float position) {
+            int pageWidth = view.getWidth();
+
+            if (position < -1) { // [-Infinity,-1)
+                // This page is way off-screen to the left.
+                ViewCompat.setAlpha(view, 0);
+
+            } else if (position <= 0) { // [-1,0]
+                // Use the default slide transition when moving to the left page
+                ViewCompat.setAlpha(view, 1);
+                ViewCompat.setTranslationX(view, 0);
+                view.setTranslationX(0);
+                ViewCompat.setScaleX(view, 1);
+                ViewCompat.setScaleY(view, 1);
+
+            } else if (position <= 1) { // (0,1]
+                // Fade the page out.
+                view.setAlpha(1 - position);
+
+                // Counteract the default slide transition
+                view.setTranslationX(pageWidth * -position);
+
+                // Scale the page down (between MIN_SCALE and 1)
+                float scaleFactor = MIN_SCALE
+                        + (1 - MIN_SCALE) * (1 - Math.abs(position));
+                view.setScaleX(scaleFactor);
+                view.setScaleY(scaleFactor);
+
+            } else { // (1,+Infinity]
+                // This page is way off-screen to the right.
+                view.setAlpha(0);
+            }
+        }
+    }
+
 }
- 

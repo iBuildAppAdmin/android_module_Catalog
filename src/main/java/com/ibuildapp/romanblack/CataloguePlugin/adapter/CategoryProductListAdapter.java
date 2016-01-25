@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.ShoppingCartPage;
 import com.ibuildapp.romanblack.CataloguePlugin.Statics;
 import com.ibuildapp.romanblack.CataloguePlugin.model.CategoryProduct;
 import com.ibuildapp.romanblack.CataloguePlugin.model.OnShoppingCartItemAddedListener;
+import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 import com.ibuildapp.romanblack.CataloguePlugin.view.RoundedListView;
@@ -157,7 +159,8 @@ public class CategoryProductListAdapter extends BaseImageAdapter {
                 if (Statics.uiConfig.colorSkin.color1 == Color.WHITE)
                     ViewHolder.get(view, R.id.category_gridadapter_root).setBackgroundColor(context.getResources().getColor(R.color.black_trans_20));
                 else
-                    ViewHolder.get(view, R.id.category_gridadapter_root).setBackgroundColor(Statics.uiConfig.colorSkin.color1);///Color.parseColor("#7fffffff"));
+                    ViewHolder.get(view, R.id.category_gridadapter_root).setBackgroundColor(Color.parseColor("#7fffffff"));
+
 
                 ViewHolder.get(view, R.id.separator).setVisibility(View.VISIBLE);
                 ImageView img = ViewHolder.get(view, R.id.category_gridadapter_image);
@@ -200,18 +203,53 @@ public class CategoryProductListAdapter extends BaseImageAdapter {
                             (int) (density * 6),
                             (categoryProduct.product.marginBottom) ? (int) (density * 6) : (int) (density * 3));
                     rootFrame.setLayoutParams(params);
+
+                    if ((Statics.uiConfig.colorSkin.color1 == Color.parseColor("#000000")))
+                        rootFrame.setBackgroundResource(R.drawable.rounded_corners_bottom_white);
                 }
 
                 TextView productName = ViewHolder.get(view, R.id.product_gridadapter_name);
                 productName.setText(categoryProduct.product.name);
+                TextView productSku = ViewHolder.get(view, R.id.product_gridadapter_sku);
+
+                if(TextUtils.isEmpty(categoryProduct.product.sku)) {
+                    productSku.setVisibility(View.GONE);
+                    productSku.setText("");
+                } else {
+                    productSku.setVisibility(View.VISIBLE);
+                    productSku.setText(context.getString(R.string.item_sku) + " " + categoryProduct.product.sku);
+                }
+
                 TextView productDesc = ViewHolder.get(view, R.id.product_gridadapter_description);
                 productDesc.setText(Jsoup.parse(categoryProduct.product.description).text());
                 TextView productPrice = ViewHolder.get(view, R.id.product_gridadapter_price);
+                TextView oldPrice = (TextView) view.findViewById(R.id.product_gridadapter_oldprice);
+
+                if (categoryProduct.product.oldprice != -1) {
+                    oldPrice.setVisibility(View.VISIBLE);
+                    String result = Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.oldprice);
+                    if (result.contains(context.getResources().getString(R.string.rest_number_pattern)))
+                        result = result.replace(context.getResources().getString(R.string.rest_number_pattern), "");
+                    oldPrice.setText(result);
+                    oldPrice.setPaintFlags(oldPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+
+                    if ("0.00".equals(String.format(Locale.US, "%.2f", categoryProduct.product.oldprice)))
+                        oldPrice.setVisibility(View.INVISIBLE);
+                    else
+                        productPrice.setText(Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price));
+                }
+                else
+                    oldPrice.setVisibility(View.INVISIBLE);
 
                 if ("0.00".equals(String.format(Locale.US, "%.2f", categoryProduct.product.price)))
                     productPrice.setText("");
                 else
-                    productPrice.setText(Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price));
+                {
+                    String result = Utils.currencyToPosition(Statics.uiConfig.currency, categoryProduct.product.price);
+                    if (result.contains(context.getResources().getString(R.string.rest_number_pattern)))
+                        result = result.replace(context.getResources().getString(R.string.rest_number_pattern), "");
+                    productPrice.setText(result);
+                }
 
                 ImageView productImage = (ImageView) view.findViewById(R.id.product_gridadapter_image);
 
@@ -237,7 +275,15 @@ public class CategoryProductListAdapter extends BaseImageAdapter {
                 }
 
                 View basketBtn = ViewHolder.get(view, R.id.basket_view_btn);
-                basketBtn.setVisibility(Statics.isBasket ? View.VISIBLE : View.GONE);
+
+                if (Statics.isBasket){
+                    if(categoryProduct.product.itemType.equals(ProductItemType.EXTERNAL))
+                        basketBtn.setVisibility( View.GONE );
+                    else basketBtn.setVisibility(View.VISIBLE);
+                }
+                else
+                    basketBtn.setVisibility( View.GONE );
+
                 basketBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {

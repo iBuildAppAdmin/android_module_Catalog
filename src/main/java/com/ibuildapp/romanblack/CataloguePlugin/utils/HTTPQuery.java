@@ -55,7 +55,9 @@ public class HTTPQuery {
             HttpConnectionParams.setConnectionTimeout(httpParameters, TIMEOUT_CONNECTION);
             HttpConnectionParams.setSoTimeout(httpParameters, TIMEOUT_SOCKET);
             HttpClient client = new DefaultHttpClient(httpParameters);
-            HttpPost post = new HttpPost("http://" + com.ibuildapp.romanblack.CataloguePlugin.Statics.ENDPOINT);
+            HttpPost post = new HttpPost( com.ibuildapp.romanblack.CataloguePlugin.Statics.ENDPOINT.contains("http")
+                    ? com.ibuildapp.romanblack.CataloguePlugin.Statics.ENDPOINT
+                    : "http://"+com.ibuildapp.romanblack.CataloguePlugin.Statics.ENDPOINT);
             HttpResponse httpResponse;
 
             post.setEntity(new UrlEncodedFormEntity(

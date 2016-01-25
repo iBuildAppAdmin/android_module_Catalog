@@ -11,6 +11,8 @@
 package com.ibuildapp.romanblack.CataloguePlugin.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class describes product entity
@@ -23,13 +25,14 @@ public class ProductEntity implements Serializable {
     public boolean valid = true;                                    // update/delete flag
     public int order = 0;                                           // update\delete product from DB
 
-    public int item_id = 0;                                         // item id
+    public long item_id = 0;                                         // item id
 
     public boolean marginBottom = false;
     public boolean marginTop = false;
 
     public String name = "";                                        // product name
     public String description = "";                                 // product desc
+    public String sku = "";                                         // product sku
     public float price = 0;                                         // product price
     public String imageURL = "";                                    // http url for category
     public String imageRes = "";                                    // assets url for category
@@ -38,7 +41,11 @@ public class ProductEntity implements Serializable {
     public String thumbnailURL = "";                                // http thumbnail url for category
     public String thumbnailRes = "";                                // assets thumbnail url for category
     public String thumbnailPath = "";                               // cache thumbnail url for category
-
+    public float oldprice = 0;
+    public ProductItemType itemType = ProductItemType.SIMPLE;
+    public String itemButtonText="";
+    public String itemUrl="";
+    public List<String> imageUrls = new ArrayList<>();
     @Override
     public String toString() {
         return "ProductEntity{" +
@@ -48,6 +55,7 @@ public class ProductEntity implements Serializable {
                 ", valid=" + valid +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", sku='" + sku + '\'' +
                 ", price=" + price +
                 ", imageURL='" + imageURL + '\'' +
                 ", imageRes='" + imageRes + '\'' +

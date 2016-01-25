@@ -17,13 +17,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 
-/**
- * Created with IntelliJ IDEA.
- * User: SimpleIce
- * Date: 15.07.14
- * Time: 13:41
- * To change this template use File | Settings | File Templates.
- */
+
 public class AlphaImageView extends ImageView {
 
     public AlphaImageView(Context context) {
