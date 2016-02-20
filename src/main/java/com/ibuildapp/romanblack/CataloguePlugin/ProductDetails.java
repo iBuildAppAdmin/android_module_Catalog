@@ -11,6 +11,7 @@
 package com.ibuildapp.romanblack.CataloguePlugin;
 
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -34,6 +35,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -246,6 +248,10 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
             apply_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    hideKeyboard();
+                    quantity.setText("1");
+                    quantity.clearFocus();
+
                     String message = "";
                     int quant = Integer.valueOf(quantity.getText().toString());
                     List<ShoppingCart.Product> products = ShoppingCart.getProducts();
@@ -475,6 +481,11 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                     } catch (Exception ex) {
                         return false;
                     }
+                }else if (url.contains("goo.gl") || url.contains("maps") || url.contains("maps.yandex")) {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse(url)).
+                            setData(Uri.parse(url)));
+                    return true;
                 }
 
                 return false;
@@ -919,6 +930,12 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
         }
     }
 
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(quantity.getWindowToken(), 0);
+    }
+
     /**
      * Enable/disable like button
      */
@@ -945,105 +962,6 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-//        menu.add("Facebook").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-//            public boolean onMenuItemClick(MenuItem arg0) {
-//                // checking Internet connection
-//                if (!Utils.networkAvailable(ProductDetails.this))
-//                    Toast.makeText(ProductDetails.this, getResources().getString(R.string.alert_no_internet), Toast.LENGTH_SHORT).show();
-//                else {
-//                    if (Authorization.getAuthorizedUser(Authorization.AUTHORIZATION_TYPE_FACEBOOK) != null) {
-//                        shareFacebook();
-//                    } else {
-//                        Authorization.authorize(ProductDetails.this, FACEBOOK_AUTHORIZATION_ACTIVITY, Authorization.AUTHORIZATION_TYPE_FACEBOOK);
-//                    }
-//                }
-//
-//                return true;
-//            }
-//        });
-//        menu.add("Twitter").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-//            public boolean onMenuItemClick(MenuItem arg0) {
-//                // checking Internet connection
-//                if (!Utils.networkAvailable(ProductDetails.this))
-//                    Toast.makeText(ProductDetails.this, getResources().getString(R.string.alert_no_internet), Toast.LENGTH_SHORT).show();
-//                else {
-//                    if (Authorization.getAuthorizedUser(Authorization.AUTHORIZATION_TYPE_TWITTER) != null) {
-//                        shareTwitter();
-//                    } else {
-//                        Authorization.authorize(ProductDetails.this, TWITTER_AUTHORIZATION_ACTIVITY, Authorization.AUTHORIZATION_TYPE_TWITTER);
-//                    }
-//                }
-//
-//                return true;
-//            }
-//        });
-//        menu.add("Email").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-//            public boolean onMenuItemClick(MenuItem arg0) {
-//                Intent intent = chooseEmailClient();
-//                intent.setType("text/html");
-//
-//                // *************************************************************************************************
-//                // preparing sharing message
-//                String downloadThe = getString(R.string.directoryplugin_email_download_this);
-//                String androidIphoneApp = getString(R.string.directoryplugin_email_android_iphone_app);
-//                String postedVia = getString(R.string.directoryplugin_email_posted_via);
-//                String foundThis = getString(R.string.directoryplugin_email_found_this);
-//
-//                // prepare content
-//                String downloadAppUrl = String.format("http://%s/projects.php?action=info&projectid=%s",
-//                        com.appbuilder.sdk.android.Statics.BASE_DOMEN,
-//                        Statics.appId);
-//
-//                String adPart = String.format(downloadThe + " %s " + androidIphoneApp + ": <a href=\"%s\">%s</a><br>%s",
-//                        Statics.appName,
-//                        downloadAppUrl,
-//                        downloadAppUrl,
-//                        postedVia + " <a href=\"http://ibuildapp.com\">www.ibuildapp.com</a>");
-//
-//                // content part
-//                String contentPath = String.format("<!DOCTYPE html><html><body><b>%s</b><br><br>%s<br><br>%s</body></html>",
-//                        product.name,
-//                        product.description,
-//                        com.ibuildapp.romanblack.CataloguePlugin.Statics.hasAd ? adPart : "");
-//
-//
-//                contentPath = contentPath.replaceAll("\\<img.*?>", "");
-//
-//                // prepare image to attach
-//                // FROM ASSETS
-//                InputStream stream = null;
-//                try {
-//                    if (!TextUtils.isEmpty(product.imageRes)) {
-//                        stream = manager.open(product.imageRes);
-//
-//                        String fileName = inputStreamToFile(stream);
-//                        File copyTo = new File(fileName);
-//                        intent.putExtra(Intent.EXTRA_STREAM,
-//                                Uri.fromFile(copyTo));
-//                    }
-//                } catch (IOException e) {
-//                    // from cache
-//                    File copyTo = new File(product.imagePath);
-//                    if (copyTo.exists()) {
-//                        intent.putExtra(Intent.EXTRA_STREAM,
-//                                Uri.fromFile(copyTo));
-//                    }
-//                }
-//
-//                intent.putExtra(Intent.EXTRA_SUBJECT, product.name);
-//                intent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(contentPath));
-//                startActivity(intent);
-//
-//                return true;
-//            }
-//        });
-//
-//        menu.add(getResources().getString(R.string.cancel)).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-//            public boolean onMenuItemClick(MenuItem arg0) {
-//                return true;
-//            }
-//        });
-
         return false;
     }
 

@@ -73,7 +73,8 @@
                 android:gravity="center"
                 android:inputType="number"
                 android:maxLines="1"
-                android:textColor="#66000000" />
+                android:textColor="#66000000"
+                android:focusable="false"/>
 
             <LinearLayout
                 android:id="@+id/delete"

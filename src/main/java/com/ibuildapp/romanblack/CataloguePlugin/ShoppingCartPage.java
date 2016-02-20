@@ -547,6 +547,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
 
             EditText quantity = (EditText) view.findViewById(R.id.quantity);
             quantity.setTag(i);
+            quantity.setInputType(0);
             quantity.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 public void onFocusChange(View view, boolean hasFocus) {
                     EditText editText = (EditText) view;

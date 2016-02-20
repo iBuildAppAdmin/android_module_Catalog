@@ -498,7 +498,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
             StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
             if (count > 0)
                 resString.append(" (" + String.valueOf(count) + ")");
-            updateWidgetInActualList(shopingCartIndex, resString.toString() );
+            //updateWidgetInActualList(shopingCartIndex, resString.toString() );
         }
     }
 
