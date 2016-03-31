@@ -43,7 +43,9 @@
             android:singleLine="true"
             android:text="@string/shopping_cart"
             android:textColor="@color/black_trans_90"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:layout_marginLeft="75dp"
+            android:layout_marginRight="80dp"/>
         <ImageView
             android:id="@+id/hamburger_view_btn"
             android:layout_width="22dp"

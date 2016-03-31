@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appbuilder.sdk.android.AppBuilderModuleMain;
+import com.appbuilder.sdk.android.StartUpActivity;
 import com.appbuilder.sdk.android.Widget;
 import com.ibuildapp.romanblack.CataloguePlugin.adapter.BaseImageAdapter;
 import com.ibuildapp.romanblack.CataloguePlugin.adapter.CategoryProductGridAdapter;
@@ -50,6 +51,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@StartUpActivity(moduleName = "Catalog")
 public class CataloguePlugin extends AppBuilderModuleMain {
 
     private static final String BASE_ENDPOINT = "/endpoint/payment.php";

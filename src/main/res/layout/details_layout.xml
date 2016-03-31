@@ -42,7 +42,9 @@
             android:layout_centerInParent="true"
             android:singleLine="true"
             android:textColor="@color/black_trans_90"
-            android:textSize="17dp" />
+            android:textSize="17dp"
+            android:layout_marginLeft="75dp"
+            android:layout_marginRight="80dp"/>
         <ImageView
             android:id="@+id/hamburger_view_btn"
             android:layout_width="22dp"

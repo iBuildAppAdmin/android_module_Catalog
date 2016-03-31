@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 22
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -24,6 +24,9 @@ dependencies {
     compile project(':PayPalAndroidUtil')
     compile project(':TwoWayGridView')
 
-    compile 'com.android.support:design:22.2.0'
-    compile 'com.android.support:recyclerview-v7:22.0.0'
+    compile "com.android.support:design:$SupportDesignVersion"
+    compile "com.android.support:recyclerview-v7:$RecyclerViewVersion"
+
+    compile "com.seppius.plurals:android-i18n-plurals:$AndroidI18NPluralsVersion"
+    compile "org.jsoup:jsoup:$JsoupVersion"
 }
