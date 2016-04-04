@@ -481,7 +481,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                     } catch (Exception ex) {
                         return false;
                     }
-                }else if (url.contains("goo.gl") || url.contains("maps") || url.contains("maps.yandex")) {
+                }else if (url.contains("goo.gl") || url.contains("maps") || url.contains("maps.yandex") || url.contains("livegpstracks")) {
                     startActivity(new Intent(Intent.ACTION_VIEW,
                             Uri.parse(url)).
                             setData(Uri.parse(url)));
