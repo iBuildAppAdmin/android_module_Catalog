@@ -11,6 +11,7 @@
 package com.ibuildapp.romanblack.CataloguePlugin;
 
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewCompat;
@@ -36,6 +38,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -452,6 +455,26 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
             }
 
             @Override
+            public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(ProductDetails.this);
+                builder.setMessage(R.string.catalog_notification_error_ssl_cert_invalid);
+                builder.setPositiveButton(ProductDetails.this.getResources().getString(R.string.catalog_continue), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        handler.proceed();
+                    }
+                });
+                builder.setNegativeButton(ProductDetails.this.getResources().getString(R.string.catalog_cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        handler.cancel();
+                    }
+                });
+                final AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+
+            @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 if (url.contains("youtube.com/embed")) {
                     startActivity(new Intent(Intent.ACTION_VIEW,
@@ -486,9 +509,12 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                             Uri.parse(url)).
                             setData(Uri.parse(url)));
                     return true;
+                }else {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse(url)).
+                            setData(Uri.parse(url)));
+                    return true;
                 }
-
-                return false;
             }
         });
         productDescription.loadDataWithBaseURL(null, product.description, "text/html", "UTF-8", null);
