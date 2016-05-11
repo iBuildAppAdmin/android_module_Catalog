@@ -13,9 +13,7 @@ package com.ibuildapp.romanblack.CataloguePlugin.model;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.ibuildapp.PayPalAndroidUtil.Payer;
@@ -23,14 +21,19 @@ import com.ibuildapp.romanblack.CataloguePlugin.R;
 import com.ibuildapp.romanblack.CataloguePlugin.ShoppingCartPage;
 import com.ibuildapp.romanblack.CataloguePlugin.Statics;
 import com.ibuildapp.romanblack.CataloguePlugin.ThankYouPage;
+import com.ibuildapp.romanblack.CataloguePlugin.api.CatalogApi;
+import com.ibuildapp.romanblack.CataloguePlugin.api.CatalogApiService;
+import com.ibuildapp.romanblack.CataloguePlugin.api.model.ApiResponse;
 import com.ibuildapp.romanblack.CataloguePlugin.database.SqlAdapter;
-import com.ibuildapp.romanblack.CataloguePlugin.utils.HTTPQuery;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import rx.Subscriber;
+import rx.schedulers.Schedulers;
 
 public class ShoppingCart {
 
@@ -148,55 +151,57 @@ public class ShoppingCart {
     public static void sendOrder(final Context context, final UserProfile userProfile) {
         SqlAdapter.insertUserProfile(userProfile);
 
-        try {
-            final Thread worker = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    final JsonResponse response = HTTPQuery.sendRequest(toShippingForm(), toItems());
+        progressDialog = ProgressDialog.show(context, null, context.getResources().getString(R.string.shopping_cart_loading), true, true);
 
-                    if ("complete".equals(response.status)) {
-                        if (context instanceof Activity) {
-                            Intent intent = new Intent(context, ThankYouPage.class);
-                            intent.putExtra(EXTRA_ORDER_NUMBER, response.orderNumber);
-                            ((Activity) context).startActivityForResult(intent, ShoppingCartPage.REQUEST_EXIT);
-                        }
-                    } else {
+        CatalogApi api = (new CatalogApiService(com.appbuilder.sdk.android.Statics.BASE_DOMEN)).getCatalogApi();
+        api.sendOrder(String.valueOf(com.ibuildapp.romanblack.CataloguePlugin.Statics.appId),
+                    String.valueOf(com.ibuildapp.romanblack.CataloguePlugin.Statics.widgetId),
+                toShippingForm(),toItems()).subscribeOn(Schedulers.io())
+                .subscribe(new Subscriber<ApiResponse>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
                         if (context instanceof Activity)
                             ((Activity) context).runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(context, context.getString(R.string.shopping_cart_send_error) + " " + response.description, Toast.LENGTH_SHORT).show();
+                                    progressDialog.dismiss();
+                                    progressDialog = null;
                                 }
                             });
                     }
 
-                    if (context instanceof Activity)
-                        ((Activity) context).runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressDialog.dismiss();
-                                progressDialog = null;
+                    @Override
+                    public void onNext(ApiResponse apiResponse) {
+                        if ("complete".equals(apiResponse.getStatus())) {
+                            if (context instanceof Activity) {
+                                Intent intent = new Intent(context, ThankYouPage.class);
+                                intent.putExtra(EXTRA_ORDER_NUMBER, apiResponse.getOrderNumber());
+                                ((Activity) context).startActivityForResult(intent, ShoppingCartPage.REQUEST_EXIT);
                             }
-                        });
-                }
-            });
+                        } else {
+                            if (context instanceof Activity)
+                                ((Activity) context).runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, context.getString(R.string.shopping_cart_send_error) , Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                        }
 
-            progressDialog = ProgressDialog.show(context, null, context.getResources().getString(R.string.shopping_cart_loading), true, true, new DialogInterface.OnCancelListener() {
-                public void onCancel(DialogInterface arg0) {
-                    try {
-                        if (worker.isAlive())
-                            worker.interrupt();
-                        arg0.dismiss();
-                    } catch (Exception e) {
-                        Log.d("", "");
+                        if (context instanceof Activity)
+                            ((Activity) context).runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    progressDialog = null;
+                                }
+                            });
                     }
-                }
-            });
-
-            worker.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                });
     }
 
     /**

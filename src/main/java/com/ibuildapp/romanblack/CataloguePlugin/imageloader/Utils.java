@@ -83,46 +83,6 @@ public class Utils {
         return null;
     }
 
-    public static String downloadFileAsString(String url) {
-        final int CONNECTION_TIMEOUT = 30000;
-        final int READ_TIMEOUT = 30000;
-
-        try {
-            for(int i = 0; i < 3; i++) {
-                URL fileUrl = new URL(URLDecoder.decode(url));
-                HttpURLConnection connection = (HttpURLConnection)fileUrl.openConnection();
-                connection.setConnectTimeout(CONNECTION_TIMEOUT);
-                connection.setReadTimeout(READ_TIMEOUT);
-                connection.connect();
-
-                int status = connection.getResponseCode();
-
-                if(status >= HttpStatus.SC_BAD_REQUEST) {
-                    connection.disconnect();
-
-                    continue;
-                }
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-
-                while((line = bufferedReader.readLine()) != null)
-                    stringBuilder.append(line);
-
-                bufferedReader.close();
-
-                return stringBuilder.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return null;
-        }
-
-        return null;
-    }
-
     public static Bitmap processBitmap(String fileName, Bitmap.Config config, int widthLimit) {
         Bitmap bitmap = null;
 

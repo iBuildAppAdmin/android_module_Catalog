@@ -31,4 +31,11 @@ dependencies {
 
     compile "com.seppius.plurals:android-i18n-plurals:$AndroidI18NPluralsVersion"
     compile "org.jsoup:jsoup:$JsoupVersion"
+
+    compile "io.reactivex:rxandroid:$RxAndroidVertion"
+    compile "io.reactivex:rxjava:$RxJavaVersion"
+    compile "com.squareup.retrofit2:retrofit:$RetrofitVersion"
+    compile "com.squareup.okhttp3:logging-interceptor:$Okhttp3LoggingInterceptorVersion"
+    compile "com.squareup.retrofit2:adapter-rxjava:$RetrofitAdapterRxJavaVersion"
+    compile "com.squareup.retrofit2:converter-gson:$RetrofitGsonConverterVersion"
 }
