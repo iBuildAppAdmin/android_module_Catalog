@@ -90,5 +90,8 @@
 
     <string name="item_sku">SKU:</string>
     <string name="rest_number_pattern">.00</string>
+    <string name="catalog_notification_error_ssl_cert_invalid">SSL error occurred. Would you like to proceed?</string>
+    <string name="catalog_continue">Continue</string>
+    <string name="catalog_cancel">Cancel</string>
 
 </resources>
