@@ -64,6 +64,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.model.ProductEntity;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ProductItemType;
 import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.view.AlphaImageView;
+import com.restfb.util.StringUtils;
 import com.seppius.i18n.plurals.PluralResources;
 
 import java.io.File;
@@ -252,7 +253,8 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                 @Override
                 public void onClick(View view) {
                     hideKeyboard();
-                    quantity.setText("1");
+                    quantity.setText(StringUtils.isBlank(quantity.getText().toString())?"1":
+                            quantity.getText().toString());
                     quantity.clearFocus();
 
                     String message = "";
