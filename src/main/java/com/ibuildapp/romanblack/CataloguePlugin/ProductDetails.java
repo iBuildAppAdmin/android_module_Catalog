@@ -20,12 +20,10 @@ import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
-import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,7 +32,6 @@ import android.text.Html;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -77,6 +74,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+
 public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnShoppingCartItemAddedListener {
     private static final Integer TOP_BAR_HEIGHT = 50;
     private final String EMAIL_IMAGE_NAME = "image.jpg";
@@ -98,9 +96,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
     private ImageView likeImage;
     private EditText quantity;
     private RelativeLayout buyLayout;
-    private RelativeLayout navBarHolder;
 
-    private TabLayout tabLayout;
     private ViewPager pager;
     private DetailsViewPagerAdapter adapter;
     private RecyclerView roundsList;
@@ -119,6 +115,8 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
     private Payer payer = new Payer();
 
     private boolean thanksPage = false;
+    private View basket;
+    private TextView apply_button;
 
     /**
      * The same as onCreate()
@@ -162,15 +160,14 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
         setContentView(R.layout.details_layout);
         hideTopBar();
 
-        navBarHolder = (RelativeLayout) findViewById(R.id.navbar_holder);
         List<String> imageUrls = new ArrayList<>();
         imageUrls.add(product.imageURL);
         imageUrls.addAll(product.imageUrls);
 
         final float density = getResources().getDisplayMetrics().density;
         int topBarHeight = (int) (TOP_BAR_HEIGHT*density);
-        TextView apply_button = (TextView) findViewById(R.id.apply_button);
-        View basket = findViewById(R.id.basket);
+        apply_button = (TextView) findViewById(R.id.apply_button);
+        basket = findViewById(R.id.basket);
         View bottomSeparator = findViewById(R.id.bottom_separator);
         quantity = (EditText) findViewById(R.id.quantity);
 
@@ -249,55 +246,55 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
         if (Statics.isBasket) {
             buyLayout.setVisibility(View.VISIBLE);
             onShoppingCartItemAdded();
-            apply_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    hideKeyboard();
-                    quantity.setText(StringUtils.isBlank(quantity.getText().toString())?"1":
-                            quantity.getText().toString());
-                    quantity.clearFocus();
+                apply_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        hideKeyboard();
+                        quantity.setText(StringUtils.isBlank(quantity.getText().toString())?"1":
+                                quantity.getText().toString());
+                        quantity.clearFocus();
 
-                    String message = "";
-                    int quant = Integer.valueOf(quantity.getText().toString());
-                    List<ShoppingCart.Product> products = ShoppingCart.getProducts();
-                    int count = 0;
+                        String message = "";
+                        int quant = Integer.valueOf(quantity.getText().toString());
+                        List<ShoppingCart.Product> products = ShoppingCart.getProducts();
+                        int count = 0;
 
-                    for (ShoppingCart.Product product : products)
-                        count += product.getQuantity();
+                        for (ShoppingCart.Product product : products)
+                            count += product.getQuantity();
 
-                    try {
-                        message = new PluralResources(getResources()).getQuantityString(R.plurals.items_to_cart, count + quant, count + quant);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
+                        try {
+                            message = new PluralResources(getResources()).getQuantityString(R.plurals.items_to_cart, count + quant, count + quant);
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+
+                        int index = products.indexOf(new ShoppingCart.Product.Builder()
+                                .setId(product.id)
+                                .build());
+                        ShoppingCart.insertProduct(new ShoppingCart.Product.Builder()
+                                .setId(product.id)
+                                .setQuantity((index == -1 ? 0 : products.get(index).getQuantity()) + quant)
+                                .build());
+                        onShoppingCartItemAdded();
+                        com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.showDialog(ProductDetails.this,
+                                R.string.shopping_cart_dialog_title,
+                                message,
+                                R.string.shopping_cart_dialog_continue,
+                                R.string.shopping_cart_dialog_view_cart,
+                                new com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.OnDialogButtonClickListener() {
+                                    @Override
+                                    public void onPositiveClick(DialogInterface dialog) {
+                                        dialog.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onNegativeClick(DialogInterface dialog) {
+                                        Intent intent = new Intent(ProductDetails.this, ShoppingCartPage.class);
+                                        ProductDetails.this.startActivity(intent);
+                                    }
+                                });
                     }
-
-                    int index = products.indexOf(new ShoppingCart.Product.Builder()
-                            .setId(product.id)
-                            .build());
-                    ShoppingCart.insertProduct(new ShoppingCart.Product.Builder()
-                            .setId(product.id)
-                            .setQuantity((index == -1 ? 0 : products.get(index).getQuantity()) + quant)
-                            .build());
-                    onShoppingCartItemAdded();
-                    com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.showDialog(ProductDetails.this,
-                            R.string.shopping_cart_dialog_title,
-                            message,
-                            R.string.shopping_cart_dialog_continue,
-                            R.string.shopping_cart_dialog_view_cart,
-                            new com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.OnDialogButtonClickListener() {
-                                @Override
-                                public void onPositiveClick(DialogInterface dialog) {
-                                    dialog.dismiss();
-                                }
-
-                                @Override
-                                public void onNegativeClick(DialogInterface dialog) {
-                                    Intent intent = new Intent(ProductDetails.this, ShoppingCartPage.class);
-                                    ProductDetails.this.startActivity(intent);
-                                }
-                            });
-                }
-            });
+                });
             if (product.itemType.equals(ProductItemType.EXTERNAL)) {
                 basket.setVisibility(View.GONE);
                 apply_button.setText(product.itemButtonText);
@@ -321,9 +318,6 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
             apply_button.setText(R.string.buy_now);
             basket.setVisibility(View.GONE);
             findViewById(R.id.cart_items).setVisibility(View.GONE);
-            /*apply_button_padding_left = 0;
-            apply_button.setGravity(Gravity.CENTER);
-            apply_button.setPadding(apply_button_padding_left, 0, 0, 0);*/
 
             if (TextUtils.isEmpty(Statics.PAYPAL_CLIENT_ID) || product.price == 0) {
                 bottomSeparator.setVisibility(View.GONE);
@@ -450,6 +444,8 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                             alreadyLoaded = !alreadyLoaded;
                         }
                     } catch (Exception ex) {
+                        Log.e(TAG, ex.getMessage());
+                        ex.printStackTrace();
                     }
                 } else {
                     super.onLoadResource(view, url);
@@ -539,14 +535,15 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                     if (TextUtils.isEmpty(token))
                         return;
 
-                    List<String> urls = new ArrayList<String>();
+                    List<String> urls = new ArrayList<>();
                     urls.add(product.imageURL);
                     final Map<String, String> res = FacebookAuthorizationActivity.getLikesForUrls(urls, token);
                     if (res != null) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                likeCount.setText(res.get(product.imageURL));
+                                if (res.containsKey(product.imageURL))
+                                    likeCount.setText(res.get(product.imageURL));
                             }
                         });
                     }
@@ -630,7 +627,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
 
                                         // prepare image to attach
                                         // FROM ASSETS
-                                        InputStream stream = null;
+                                        InputStream stream;
                                         try {
                                             if (!TextUtils.isEmpty(product.imageRes)) {
                                                 stream = manager.open(product.imageRes);
@@ -656,8 +653,6 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                                 })
                                 .build()
                 );
-
-//                openOptionsMenu();
             }
         });
 
@@ -677,7 +672,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                                 @Override
                                 public void run() {
 
-                                    List<String> userLikes = null;
+                                    List<String> userLikes;
                                     try {
                                         userLikes = FacebookAuthorizationActivity.getUserOgLikes();
                                         for (String likeUrl : userLikes) {
@@ -693,11 +688,10 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                                                 try {
                                                     final int res = Integer.parseInt(likeCountStr);
 
-
                                                     runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            likeCount.setText(Integer.toString(res + 1));
+                                                            likeCount.setText(String.valueOf(res + 1));
                                                             enableLikeButton(false);
                                                             Toast.makeText(ProductDetails.this, getString(R.string.like_success), Toast.LENGTH_SHORT).show();
                                                         }
@@ -754,7 +748,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                     @Override
                     public void run() {
 
-                        List<String> userLikes = null;
+                        List<String> userLikes;
                         try {
                             userLikes = FacebookAuthorizationActivity.getUserOgLikes();
                             for (String likeUrl : userLikes) {
@@ -789,10 +783,11 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                     image.setLayoutParams(new LinearLayout.LayoutParams(screenWidth, screenWidth / ratio));
 
                     image.setImageBitmapWithAlpha(btm);
-                    //image.setImageBitmap(btm);
                     return;
                 }
             } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+                e.printStackTrace();
             }
         }
 
@@ -863,15 +858,11 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
             case FACEBOOK_AUTHORIZATION_ACTIVITY: {
                 if (resultCode == RESULT_OK)
                     shareFacebook();
-//                else if (resultCode == RESULT_CANCELED)
-//                    Toast.makeText(ProductDetails.this, getResources().getString(R.string.alert_facebook_auth_error), Toast.LENGTH_SHORT).show();
             }
             break;
             case TWITTER_AUTHORIZATION_ACTIVITY: {
                 if (resultCode == RESULT_OK)
                     shareTwitter();
-//                else if (resultCode == RESULT_CANCELED)
-//                    Toast.makeText(ProductDetails.this, getResources().getString(R.string.alert_twitter_auth_error), Toast.LENGTH_SHORT).show();
             }
             break;
 
@@ -919,7 +910,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        likeCount.setText(Integer.toString(res + 1));
+                                                        likeCount.setText(String.valueOf(res + 1));
                                                         Toast.makeText(ProductDetails.this, getString(R.string.like_success), Toast.LENGTH_SHORT).show();
                                                         enableLikeButton(false);
                                                     }
@@ -1067,8 +1058,8 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
      * @return file name string
      */
     private String inputStreamToFile(InputStream srteam) {
-        OutputStream outputStream = null;
-        File outPut = null;
+        OutputStream outputStream;
+        File outPut;
         try {
             // prepare dirs
             File path = new File(Statics.moduleCachePath);
@@ -1126,7 +1117,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
         if (showSideBar && Statics.isBasket) {
             StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
             if (count > 0)
-                resString.append(" (" + String.valueOf(count) + ")");
+                resString.append(" (").append(String.valueOf(count)).append(")");
             updateWidgetInActualList(shopingCartIndex, resString.toString());
         }
     }
@@ -1145,28 +1136,26 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
                 // Use the default slide transition when moving to the left page
                 ViewCompat.setAlpha(view, 1);
                 ViewCompat.setTranslationX(view, 0);
-                view.setTranslationX(0);
                 ViewCompat.setScaleX(view, 1);
                 ViewCompat.setScaleY(view, 1);
 
             } else if (position <= 1) { // (0,1]
                 // Fade the page out.
-                view.setAlpha(1 - position);
+                ViewCompat.setAlpha(view,1 - position);
 
                 // Counteract the default slide transition
-                view.setTranslationX(pageWidth * -position);
+                ViewCompat.setTranslationX(view, pageWidth * -position);
 
                 // Scale the page down (between MIN_SCALE and 1)
                 float scaleFactor = MIN_SCALE
                         + (1 - MIN_SCALE) * (1 - Math.abs(position));
-                view.setScaleX(scaleFactor);
-                view.setScaleY(scaleFactor);
+                ViewCompat.setScaleX(view, scaleFactor);
+                ViewCompat.setScaleY(view, scaleFactor);
 
             } else { // (1,+Infinity]
                 // This page is way off-screen to the right.
-                view.setAlpha(0);
+                ViewCompat.setAlpha(view, 0);
             }
         }
     }
-
 }
