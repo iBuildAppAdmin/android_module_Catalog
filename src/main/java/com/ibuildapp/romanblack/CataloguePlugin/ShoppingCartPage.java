@@ -16,11 +16,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.AsyncTask;
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputFilter;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
@@ -44,6 +46,7 @@ import com.ibuildapp.romanblack.CataloguePlugin.model.UserProfile;
 import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,7 +57,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
     private final boolean isLight = Statics.uiConfig.colorSkin.isLight;
     private final boolean isPayPalBased = Statics.isShoppingCartPayPalBased;
     private SparseArray<Pair> source;
-    private float totalPrice = 0;
+    private BigDecimal totalPrice = BigDecimal.valueOf(0);
     private Payer payer;
     private int padding;
     private TextView total_price;
@@ -201,7 +204,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
 
         //webView.loadData(Statics.shoppingCartFields.description,"text/html; charset=UTF-8", null);
         priceLayout = (LinearLayout) footer.findViewById(R.id.shopping_cart_price_layout);
-        if (totalPrice == 0.00f)
+        if (totalPrice.equals(BigDecimal.valueOf(0.00f)))
             priceLayout.setVisibility(View.GONE);
         else priceLayout.setVisibility(View.VISIBLE);
 
@@ -545,10 +548,57 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
                 price.setVisibility(View.INVISIBLE);
             else price.setVisibility(View.VISIBLE);
 
-            EditText quantity = (EditText) view.findViewById(R.id.quantity);
+            final EditText quantity = (EditText) view.findViewById(R.id.quantity);
             quantity.setTag(i);
-            quantity.setInputType(0);
-            quantity.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            quantity.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    EditText editText =  quantity;
+                    int index = (Integer) editText.getTag();
+                    if (!deleted.get(index)) {
+                        String text = editText.getText().toString();
+                        Pair pair = source.get(index);
+                        int quantity;
+
+                        try {
+                            quantity = Integer.valueOf(text);
+                        } catch (Exception exception) {
+                            try {
+                                quantity = Integer.valueOf(editTextValues.get(index));
+                            } catch (Exception nestedException) {
+                                quantity = 0;
+                            }
+                        }
+
+                        editTextValues.put(index, String.valueOf(quantity));
+
+                        if (!TextUtils.isEmpty(text) && quantity > 0) {
+                            pair.product = new ShoppingCart.Product.Builder()
+                                    .setId(pair.product.getId())
+                                    .setQuantity(quantity)
+                                    .build();
+                            source.put(index, pair);
+                            ShoppingCart.insertProduct(pair.product);
+
+                            setTotalPrice();
+                        } else {
+                            editText.setText(editTextValues.get(index));
+                        }
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
+           /* quantity.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 public void onFocusChange(View view, boolean hasFocus) {
                     EditText editText = (EditText) view;
                     int index = (Integer) view.getTag();
@@ -583,7 +633,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
                         }
                     }
                 }
-            });
+            });*/
             quantity.setFilters(new InputFilter[]{
                     new InputFilter() {
                         @Override
@@ -652,7 +702,7 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
      * Setting total price of cart
      */
     public void setTotalPrice() {
-        totalPrice = 0;
+        totalPrice = BigDecimal.valueOf(0);
 
         if (cartIsEmpty()) {
             setShoppingCartEmpty();
@@ -663,14 +713,21 @@ public class ShoppingCartPage extends AppBuilderModuleMain {
         List<ShoppingCart.Product> source = ShoppingCart.getProducts();
 
         for (int i = 0; i < deleted.size(); i++)
-            if (!deleted.get(i))
-                totalPrice += SqlAdapter.selectProductById(source.get(i).getId()).price * source.get(i).getQuantity();
+            if (!deleted.get(i)) {
+                ProductEntity sqlItem = SqlAdapter.selectProductById(source.get(i).getId());
+                BigDecimal sourceCount =  BigDecimal.valueOf(source.get(i).getQuantity());
+                BigDecimal price = BigDecimal.valueOf(sqlItem.price);
+                BigDecimal value = price.multiply(sourceCount);
+                totalPrice = totalPrice.add(value);
+            }
 
-        if (total_price != null)
-            total_price.setText(com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.currencyToPosition(Statics.uiConfig.currency, totalPrice));
+        if (total_price != null) {
+            String price = com.ibuildapp.romanblack.CataloguePlugin.utils.Utils.currencyToPosition(Statics.uiConfig.currency, totalPrice);
+            total_price.setText(price);
+        }
 
         if (priceLayout!=null)
-        if (totalPrice == 0.00f)
+        if (totalPrice.equals(BigDecimal.valueOf(0.00f)))
             priceLayout.setVisibility(View.GONE);
         else priceLayout.setVisibility(View.VISIBLE);
     }

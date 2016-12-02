@@ -20,7 +20,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -43,7 +42,6 @@ import com.ibuildapp.romanblack.CataloguePlugin.model.ShoppingCart;
 import com.ibuildapp.romanblack.CataloguePlugin.utils.Utils;
 import com.ibuildapp.romanblack.CataloguePlugin.view.SearchView;
 import com.ibuildapp.romanblack.CataloguePlugin.xml.XmlParser;
-import com.jess.ui.TwoWayAbsListView;
 import com.jess.ui.TwoWayGridView;
 
 import java.io.File;
@@ -111,7 +109,6 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                     public void run() {
                         root.setBackgroundColor(Statics.uiConfig.colorSkin.color1);
 
-                        // final boolean showSideBar = ((Boolean) getIntent().getExtras().getSerializable("showSideBar")).booleanValue();
                         View hamburgerView = findViewById(R.id.hamburger_view_btn);
                         hamburgerView.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -159,7 +156,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                             if (showSideBar) {
                                 StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
                                 if (count > 0)
-                                    resString.append(" (" + String.valueOf(count) + ")");
+                                    resString.append(" (").append(String.valueOf(count)).append(")");
                                 updateWidgetInActualList(shopingCartIndex, resString.toString() );
                             }
                         }
@@ -168,26 +165,24 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
                 SqlAdapter.deleteDataFromTables();
                 List<CategoryEntity> categoryEntityList = parser.getCategoryList();
-                List<CategoryEntity> categorListToDelete = new ArrayList<>();
-                List<CategoryEntity> categorListToInsert = new ArrayList<>();
+                List<CategoryEntity> categoryListToDelete = new ArrayList<>();
+                List<CategoryEntity> categoryListToInsert = new ArrayList<>();
                 for (CategoryEntity cat : categoryEntityList) {
                     if (cat.valid) {
-                        categorListToInsert.add(cat);
+                        categoryListToInsert.add(cat);
                     } else
-                        categorListToDelete.add(cat);
+                        categoryListToDelete.add(cat);
                 }
-                SqlAdapter.deleteCategoryRow(categorListToDelete);
-                SqlAdapter.insertCategoryRows(categorListToInsert);
+                SqlAdapter.deleteCategoryRow(categoryListToDelete);
+                SqlAdapter.insertCategoryRows(categoryListToInsert);
 
                 List<ProductEntity> productEntityList = parser.getProductList();
                 List<ProductEntity> productListToDelete = new ArrayList<>();
                 List<ProductEntity> productListToInsert = new ArrayList<>();
                 for (ProductEntity prod : productEntityList) {
-                    if (prod.valid) {
+                    if (prod.valid)
                         productListToInsert.add(prod);
-                    } else {
-                        productListToDelete.add(prod);
-                    }
+                    else productListToDelete.add(prod);
                 }
                 SqlAdapter.deleteProductRow(productListToDelete);
                 SqlAdapter.insertProductRows(productListToInsert);
@@ -253,14 +248,12 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                                     prod.marginBottom = true;
                             }
 
-                            if (i == productEntityList.size() - 1) {
+                            if (i == productEntityList.size() - 1)
                                 prod.marginBottom = true;
-                            }
 
                             categoryProductList.add(new CategoryProduct(null, prod));
                         }
                     }
-
                 }
 
                 Log.e(TAG, "");
@@ -307,7 +300,6 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                             }
                         }
                     });
-
             }
         });
         loader.start();
@@ -320,7 +312,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
         density = getResources().getDisplayMetrics().density;
 
         widgetXml = null;
-        Widget widget = null;
+        Widget widget;
         Intent currentIntent = getIntent();
         Bundle store = currentIntent.getExtras();
         if (store != null) {
@@ -367,7 +359,6 @@ public class CataloguePlugin extends AppBuilderModuleMain {
         } else {
             Toast.makeText(this, getResources().getString(R.string.cannot_init_plugin), Toast.LENGTH_LONG).show();
             finish();
-            return;
         }
     }
 
@@ -434,7 +425,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
                 if (!TextUtils.isEmpty(textView.getText().toString())) {
                     List<ProductEntity> searchList = SqlAdapter.selectProductsLike(textView.getText().toString());
-                    List<CategoryProduct> resList = new ArrayList<CategoryProduct>();
+                    List<CategoryProduct> resList = new ArrayList<>();
                     if (searchList.size() > 0) {
                         for (int i = 0; i < searchList.size(); i++) {
                             ProductEntity prod = searchList.get(i);
@@ -444,9 +435,9 @@ public class CataloguePlugin extends AppBuilderModuleMain {
                                     prod.marginBottom = true;
                             }
 
-                            if (i == searchList.size() - 1) {
+                            if (i == searchList.size() - 1)
                                 prod.marginBottom = true;
-                            }
+
                             resList.add(new CategoryProduct(null, prod));
                         }
                     }
@@ -499,7 +490,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
         if (showSideBar) {
             StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
             if (count > 0)
-                resString.append(" (" + String.valueOf(count) + ")");
+                resString.append(" (").append(String.valueOf(count)).append(")");
             //updateWidgetInActualList(shopingCartIndex, resString.toString() );
         }
     }
@@ -510,7 +501,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
     @Override
     public void destroy() {
         if (adapter != null)
-            ((BaseImageAdapter) adapter).clearBitmaps();
+            adapter.clearBitmaps();
 
         destroyed = true;
         loader.interrupt();

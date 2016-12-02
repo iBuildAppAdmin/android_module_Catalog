@@ -13,6 +13,7 @@ package com.ibuildapp.romanblack.CataloguePlugin;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -51,7 +52,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
     private ListView list;
     private TwoWayGridView grid;
     private BaseAdapter adapter;
-    private List<CategoryProduct> categoryProductList = new ArrayList<CategoryProduct>();
+    private List<CategoryProduct> categoryProductList = new ArrayList<>();
     private float density;
     private TextView title;
     private ImageView searchViewBtn;
@@ -138,7 +139,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
         if (showSideBar && Statics.isBasket) {
             StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
             if (count > 0)
-                resString.append(" (" + String.valueOf(count) + ")");
+                resString.append(" (").append(String.valueOf(count)).append(")");
             updateWidgetInActualList(shopingCartIndex, resString.toString());
         }
     }
@@ -165,9 +166,9 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
 
         FrameLayout navbarHolder = (FrameLayout) findViewById(R.id.navbar_holder);
         if (Statics.uiConfig.colorSkin.color1 == Color.WHITE)
-            navbarHolder.setBackgroundColor(getResources().getColor(R.color.black_trans_20));
+            navbarHolder.setBackgroundColor(ContextCompat.getColor(this, R.color.black_trans_20));
         else
-            navbarHolder.setBackgroundColor(getResources().getColor(R.color.white_trans_50));
+            navbarHolder.setBackgroundColor(ContextCompat.getColor(this, R.color.white_trans_50));
 
         searchViewBtn = (ImageView) findViewById(R.id.search_view_btn);
         searchViewBtn.setOnClickListener(new View.OnClickListener() {
@@ -282,7 +283,7 @@ public class CatalogueCategoryProductActivity extends AppBuilderModuleMain imple
 
                 if (!TextUtils.isEmpty(textView.getText().toString())) {
                     List<ProductEntity> searchList = SqlAdapter.selectProductsLike(textView.getText().toString());
-                    List<CategoryProduct> resList = new ArrayList<CategoryProduct>();
+                    List<CategoryProduct> resList = new ArrayList<>();
                     if (searchList.size() > 0) {
                         for (int i = 0; i < searchList.size(); i++) {
                             ProductEntity prod = searchList.get(i);

@@ -10,6 +10,7 @@
         android:layout_height="match_parent"
         android:adjustViewBounds="false"
         android:scaleType="fitCenter"/>
+
     <ProgressBar
         android:id="@+id/details_viewer_item_progress"
         android:layout_width="50dp"

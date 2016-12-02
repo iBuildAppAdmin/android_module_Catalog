@@ -26,7 +26,7 @@ public class ExternalProductDetailsActivity extends AppBuilderModuleMain impleme
     private WebView mainWebView;
     private String itemUrl;
     private LinearLayout backBtn;
-    private int shopingCartIndex;
+    private int shoppingCartIndex;
 
     @Override
     public void create() {
@@ -71,7 +71,7 @@ public class ExternalProductDetailsActivity extends AppBuilderModuleMain impleme
 
             if(Statics.isBasket) {
                 onShoppingCartItemAdded();
-                shopingCartIndex = setTopBarRightButton(basketBtn, getResources().getString(R.string.shopping_cart), listener);
+                shoppingCartIndex = setTopBarRightButton(basketBtn, getResources().getString(R.string.shopping_cart), listener);
             } else
                 findViewById(R.id.cart_items).setVisibility(View.GONE);
         }
@@ -110,8 +110,8 @@ public class ExternalProductDetailsActivity extends AppBuilderModuleMain impleme
         if (showSideBar && Statics.isBasket) {
             StringBuilder resString = new StringBuilder( getResources().getString(R.string.shopping_cart));
             if (count > 0)
-                resString.append(" (" + String.valueOf(count) + ")");
-            updateWidgetInActualList(shopingCartIndex, resString.toString() );
+                resString.append(" (").append(String.valueOf(count)).append(")");
+            updateWidgetInActualList(shoppingCartIndex, resString.toString() );
         }
     }
 }

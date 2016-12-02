@@ -32,7 +32,7 @@ public enum Plugin {
     private final BlockingQueue<Runnable> queueNetwork;
     private final BlockingQueue<Runnable> queueLocal;
 
-    private Plugin() {
+    Plugin() {
         final int CORES = Runtime.getRuntime().availableProcessors();
         final int THREAD_POOL_SIZE_NETWORK = CORES + 1;
         final int THREAD_POOL_SIZE_NETWORK_MAX = CORES * 2 + 1;

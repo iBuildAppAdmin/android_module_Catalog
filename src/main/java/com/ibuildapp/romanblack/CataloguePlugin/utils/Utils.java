@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -79,6 +80,20 @@ public class Utils {
     /**
      * compution currency positon
      */
+    public static String currencyToPosition(String currencyStr, BigDecimal price) {
+        try {
+            Locale locale = Locale.getDefault();
+            Currency currency = Currency.getInstance(currencyStr);
+            java.text.NumberFormat format = java.text.NumberFormat.getCurrencyInstance(locale);
+            format.setCurrency(currency);
+
+            String result =  format.format(price);
+            return result;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     public static String currencyToPosition(String currencyStr, float price) {
         try {
             Locale locale = Locale.getDefault();
@@ -86,12 +101,12 @@ public class Utils {
             java.text.NumberFormat format = java.text.NumberFormat.getCurrencyInstance(locale);
             format.setCurrency(currency);
 
-            return format.format(price);
+            String result =  format.format(price);
+            return result;
         } catch (Exception e) {
             return "";
         }
     }
-
     /**
      * Opens Bitmap from file
      *

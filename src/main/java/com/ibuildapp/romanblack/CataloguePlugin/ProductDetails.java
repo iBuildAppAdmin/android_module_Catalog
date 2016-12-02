@@ -20,7 +20,11 @@ import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -74,7 +78,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnShoppingCartItemAddedListener {
     private static final Integer TOP_BAR_HEIGHT = 50;
     private final String EMAIL_IMAGE_NAME = "image.jpg";
@@ -96,6 +99,7 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
     private ImageView likeImage;
     private EditText quantity;
     private RelativeLayout buyLayout;
+    private RelativeLayout navBarHolder;
 
     private ViewPager pager;
     private DetailsViewPagerAdapter adapter;
@@ -153,12 +157,31 @@ public class ProductDetails extends AppBuilderModuleMainAppCompat implements OnS
         category = SqlAdapter.selectCategoryById(product.categoryId);
     }
 
+    public void setNavBarBackgroundColor(final int color) {
+        float density = getResources().getDisplayMetrics().density;
+        int backColor;
+
+        if (Statics.uiConfig.colorSkin.color1 == Color.WHITE)
+            backColor = getResources().getColor(R.color.black_trans_20);
+        else
+            backColor = getResources().getColor(R.color.white_trans_50);
+
+        navBarHolder.setBackgroundDrawable(new LayerDrawable(new Drawable[]{
+                new ColorDrawable(color),
+                new ColorDrawable(backColor )
+        }));
+
+        navBarHolder.setPadding((int) (density * 10), 0,0,0);
+    }
     /**
      * Initializing user interface
      */
     private void initializeUI() {
         setContentView(R.layout.details_layout);
         hideTopBar();
+
+        navBarHolder = (RelativeLayout) findViewById(R.id.navbar_holder);
+        setNavBarBackgroundColor(Statics.uiConfig.colorSkin.color1);
 
         List<String> imageUrls = new ArrayList<>();
         imageUrls.add(product.imageURL);
