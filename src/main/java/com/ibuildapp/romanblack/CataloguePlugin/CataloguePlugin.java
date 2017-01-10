@@ -324,7 +324,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
 
             try {
                 if (widget.getPluginXmlData().length() == 0) {
-                    if (currentIntent.getStringExtra("WidgetFile").length() == 0) {
+                    if (widget.getPathToXmlFile().length() == 0) {
                         Toast.makeText(this, getResources().getString(R.string.cannot_init_plugin), Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -340,7 +340,7 @@ public class CataloguePlugin extends AppBuilderModuleMain {
             if (widget.getPluginXmlData().length() > 0) {
                 widgetXml = widget.getPluginXmlData();
             } else {
-                widgetXml = readXmlFromFile(currentIntent.getStringExtra("WidgetFile"));
+                widgetXml = readXmlFromFile(widget.getPathToXmlFile());
             }
 
 
